@@ -32,6 +32,7 @@ instance Functor I where
 runI :: I a -> a
 runI = unI
 
+-- ET (this is actually MaybeT, no ErrorT)
 newtype ET m a = ET (m (Maybe a))
 unET (ET m) = m
 
@@ -42,7 +43,7 @@ instance (Monad m) => Monad (ET m) where
                               Just a -> unET (faETmb a)
                               Nothing -> return Nothing
 
-instance (Applicative m, Monad m) => Applicative (ET m) where 
+instance (Applicative m, Monad m) => Applicative (ET m) where
   pure a = return a
   -- af (a -> b) <*> af a :: af b
   etmfab <*> etma = ET $ do maybefab <- (unET etmfab) -- etmb = ET(m(Maybe b))
