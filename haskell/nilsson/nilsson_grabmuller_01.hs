@@ -2,6 +2,7 @@
 import Data.Maybe
 import qualified Data.Map as Map
 import Control.Applicative
+import Text.Show.Functions
 
 type Name = String
 data Exp = Lit Integer
@@ -74,6 +75,7 @@ eval1 env (App e1 e2) = let (FunVal argname body env') = unI $ eval1 env e1
 ----------------------------------------------------------------------
 -- MaybeT, actually...
 newtype ET m a = ET (m (Maybe a))
+
 unET (ET m) = m
 
 instance (Monad m) => Monad (ET m) where
@@ -107,3 +109,8 @@ instance (Monad m) => E (ET m) where
                                            Nothing -> unET catchclause
 
 ------------------------------------------------------------------------
+--runEval2 :: ET I Value -> Value
+--runEval2 etia = unI (unET etia)
+
+eval2 :: Env -> Exp -> ET I Value
+eval2 env (Lit i) = return $ IntVal i
