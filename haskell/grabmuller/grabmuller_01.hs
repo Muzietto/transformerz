@@ -80,7 +80,7 @@ module Transformers where
   -- runEval1 $ eval1 Map.empty exampleExp -- IntVal 18
 
   -- handling errors
-  type Eval2 = ErrorT String Eval1
+  type Eval2 = ErrorT String Eval1 -- ErrorT String Identity
 
   runEval2 :: Eval2 a -> Either String a
   runEval2 = \x -> runEval1 (runErrorT x)
