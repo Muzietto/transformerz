@@ -87,7 +87,7 @@ eval1 env (App e1 e2) = let (FunVal argname body env') = unI $ eval1 env e1
 newtype ET m a = ET (m (Maybe a))
 deriving instance Show (m (Maybe a)) => Show (ET m a)
 
--- unwrap the OUTER monad
+-- unwrap the OUTER monad, i.e. resolve its type
 unET :: (Monad m) => ET m a -> m (Maybe a)
 unET (ET m) = m
 
@@ -162,7 +162,7 @@ eval2 env (App e1 e2)           = do v1 <- eval2 env e1
 newtype ST s m a = ST (s -> m (a, s))
 deriving instance Show (s -> m (a, s)) => Show (ST s m a)
 
--- unwrap the OUTER monad
+-- unwrap the OUTER monad, i.e. resolve its type
 unST :: (Monad m) => ST s m a -> s -> m (a, s)
 unST (ST m) = m
 
@@ -212,14 +212,16 @@ instance (S m) => S (ET m) where
   sSet = 
 -}
 -- en E monad transformed by ST is an E monad
-instance (E m) => E (ST s m) where
+instance (E m) => E (ST s m) where -- E (ST s m a) = E (ST (s -> m (a,s)))
   -- eFail :: (ST s m) a
   eFail = ST $ \s -> eFail -- = lift eFail
-  -- eHandle :: (ST s m) a -> (ST s m) a -> (ST s m) a
-  eHandle trystsma catchstsma = ST $ \s -> do _ {-tryma-} <- unST trystsma s -- :: ET m ()
-                                              catchma <- unST catchstsma s
-                                              eHandle (unST trystsma s) (unST catchstsma s) --return $ eHandle tryma catchma
-  -- ST $ \s -> eHandle (unST trystsma s) (unST catchstsma s) <-- VERIFY THIS!!!
+  -- eHandle :: (ST s m) a -> (ST s m) a -> (ST s m) a ||| REM unST :: (Monad m) => ST s m a -> s -> m (a, s)
+  eHandle trystsma catchstsma = ST $ \s -> do tryas <- unST trystsma s -- running in m => tryas :: (a, s)
+                                              catchas <- unST catchstsma s
+                                              eHandle (return tryas) (return catchas) -- eHandle di m
+-- ST $ \s -> eHandle_di_m (unST trystsma s) (unST catchstsma s) <-- VERIFY THIS!!!
+-- eHandle_di_m :: m a -> m a -> m a
+-- oppure: eHandle_di_m :: m (a,s) -> m (a,s) -> m (a,s) -- è come se dove c'è ST, il valore non è più :: a, ma :: (a,s)
 
 ----------------------------------------------------------------------------
 type Eval3 s a = ST s (ET I) a -- = ST (s -> ET I (a, s)) = ST (s -> ET (I (Maybe (a, s))))
