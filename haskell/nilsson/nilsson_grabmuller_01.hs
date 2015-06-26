@@ -45,8 +45,14 @@ eval0 env (App e1 e2) = let FunVal argname body env' = eval0 env e1
 
 newtype I a = I a
   deriving Show
+
+-- unwrap the monad
 unI :: I a -> a
 unI (I a) = a
+
+-- run the monad
+runI :: I a -> a
+runI = unI
 instance Monad I where
   return = I
   ia >>= faib = faib (unI ia)
@@ -81,8 +87,16 @@ eval1 env (App e1 e2) = let (FunVal argname body env') = unI $ eval1 env e1
 newtype ET m a = ET (m (Maybe a))
 deriving instance Show (m (Maybe a)) => Show (ET m a)
 
---unET :: (Monad m) => ET m a -> m a
+-- unwrap the OUTER monad
+unET :: (Monad m) => ET m a -> m (Maybe a)
 unET (ET m) = m
+
+-- run the OUTER monad
+runET :: Monad m => ET m a -> m a
+runET etma = do ma <- unET etma
+                case ma of 
+                  Just a -> return a
+--                Nothing -> crash!
 
 instance (Monad m) => Monad (ET m) where
   return a = ET (return (Just a))
@@ -118,7 +132,8 @@ instance (Monad m) => MonadTransformer ET m where
   -- (a -> m b) -> (a -> t m b), opp. m a -> t m a
   -- lift famb = \a -> ET $ do mb <- famb a
                             -- return mb
-  -- ma -> t m a
+  -- m a -> t m a
+  -- lift :: m a -> ET m a = ET m (Maybe a)
   lift ma = ET $ do a <- ma -- ET $ ma >>= \a -> return (Just a)
                     return (Just a) 
 
@@ -144,11 +159,18 @@ eval2 env (App e1 e2)           = do v1 <- eval2 env e1
                                        _ -> eFail
 
 -------------------------------------------------------------------------
-newtype ST s m a = ST (s -> m (a,s))
-deriving instance Show (s -> m (a,s)) => Show (ST s m a)
+newtype ST s m a = ST (s -> m (a, s))
+deriving instance Show (s -> m (a, s)) => Show (ST s m a)
 
---unST :: ST m -> m
+-- unwrap the OUTER monad
+unST :: (Monad m) => ST s m a -> s -> m (a, s)
 unST (ST m) = m
+
+-- run the OUTER monad
+runST :: Monad m => ST s m a -> s -> m a
+runST stsma = \s -> do (aaa, _) <- unST stsma s
+                       return aaa
+
 
 instance (Monad m) => Monad (ST s m) where
   return x = ST (\s -> return (x, s))
@@ -161,31 +183,60 @@ instance (Functor m, Monad m) => Applicative (ST s m) where
   stsmfab <*> stsma = ST $ \s -> do (fab, sfab) <- unST stsmfab s
                                     (a, sa) <- unST stsma s
                                     return (fab a, sa) 
-  
+
 instance (Functor m, Monad m) => Functor (ST s m) where
   fmap fab stsma = ST $ \s -> do (a, sa) <- unST stsma s
                                  return (fab a, sa)
-  
+
 -- kind of MonadState
 class (Monad m) => S m s | m -> s where
   sGet :: m s       -- I'd say s -> m (s, s))
   sSet :: s -> m () -- I'd say s -> _ -> m ((), s)
-  
+
 instance (Monad m) => S (ST s m) s where
   sGet   = ST $ \s -> return (s, s)
   sSet s = ST $ \_ -> return ((), s)
-  
+
 instance (Monad m) => MonadTransformer (ST s) m where
-  -- ma -> t m a
+  -- lift :: m a -> t m a
+  -- lift :: m a -> ST s m a = ST (s -> m (a,s))
   lift ma = ST $ \s -> do a <- ma -- ST $ \s -> ma >>= \a -> return (a, s)
                           return (a, s)
-----------------------------------------------------------------------------
-type Eval3 s a = ST s (ET I) a
+{-
+-- MUTUAL TRANSFORMATIONS
+-- an S monad transformed by ET is an S monad
+instance (S m) => S (ET m) where
+  -- sGet :: s -> (ET m) (s,s)
+  sGet = 
+  -- sSet :: s -> _ -> (ET m) ((),s)
+  sSet = 
+-}
+-- en E monad transformed by ST is an E monad
+instance (E m) => E (ST s m) where
+  -- eFail :: (ST s m) a
+  eFail = ST $ \s -> eFail -- = lift eFail
+  -- eHandle :: (ST s m) a -> (ST s m) a -> (ST s m) a
+  eHandle trystsma catchstsma = ST $ \s -> do _ {-tryma-} <- unST trystsma s -- :: ET m ()
+                                              catchma <- unST catchstsma s
+                                              eHandle (unST trystsma s) (unST catchstsma s) --return $ eHandle tryma catchma
+  -- ST $ \s -> eHandle (unST trystsma s) (unST catchstsma s) <-- VERIFY THIS!!!
 
-runEval3 :: Integer -> ST s (ET I) Value -> (Maybe Value, Integer)
+----------------------------------------------------------------------------
+type Eval3 s a = ST s (ET I) a -- = ST (s -> ET I (a, s)) = ST (s -> ET (I (Maybe (a, s))))
+
 -- e3val s = (s, etia)
-runEval3 s e3val = do (etiv, s') <- unST e3val s
-                      return (unI (unST etiv), s')
+-- unST (ST m) = m
+{-
+  ex2a :: ST Int (ET I) Int
+  ex2a= (sSet 3 >> eFail) ‘eHandle‘ sGet
+
+  runI (runST (runET ex2b) 0)
+-}
+
+-- resolve this!!!
+--runEval3 :: Integer -> ST s (ET I) Value -> (Maybe Value, Integer)
+--runEval3 s e3val = do (etiv, s') <- unST e3val s
+--                      return (unI (unST etiv), s')
 
 --runEval2 :: ET I Value -> Maybe Value
 --runEval2 etia = unI (unET etia)
@@ -193,5 +244,20 @@ runEval3 s e3val = do (etiv, s') <- unST e3val s
 eval3 :: Env -> Exp -> Eval3 Int Value
 eval3 env (Lit i) = return $ IntVal i
 
+pippo = eval3 Map.empty (Lit 123)
+pluto = unST pippo 0
+
+{-
+  HOW TO USE values produced by eval3 :: ST Int (ET I) Value
+  unST e3val 0 :: ET I (Value, Int)
+  
+  pippo = eval3 Map.empty (Lit 123) 0
+  pippo :: ST Int (ET I) Value = ST (s -> ET I (Value, Int)) = ST (s -> ET (I (Maybe (Value, Int))))
+  
+  unST pippo 0 :: ET I (Value, Int) = ET (I (Maybe (Value, Int)))
+  unST pippo 0 = ET (I (Just (IntVal 123, 0)))
+  
+  unI $ unET $ unST pippo 0 = Just(IntVal 123, 0)
+-}
 
 
