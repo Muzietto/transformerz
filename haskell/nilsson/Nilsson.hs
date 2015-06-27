@@ -42,7 +42,7 @@ module Nilsson where
   -----------------------------------------------------------------------
 
   newtype I a = I a
-    deriving Show
+    deriving (Show, Read, Eq)
 
   -- unwrap the monad
   unI :: I a -> a
@@ -84,6 +84,7 @@ module Nilsson where
   -- MaybeT, actually...
   newtype ET m a = ET (m (Maybe a))
   deriving instance Show (m (Maybe a)) => Show (ET m a)
+  deriving instance Eq (m (Maybe a)) => Eq (ET m a)
 
   -- unwrap the OUTER monad, i.e. resolve its type
   unET :: (Monad m) => ET m a -> m (Maybe a)
