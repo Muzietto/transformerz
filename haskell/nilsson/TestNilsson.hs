@@ -1,0 +1,56 @@
+
+module TestNilsson where 
+
+  import Data.Maybe
+  import qualified Data.Map as Map
+  import Text.Show.Functions
+  import Test.HUnit
+  import Nilsson
+
+  -- Expressions for exercises
+  -- var xxxx, yyyy
+  watIsXxxx = Var "xxxx"
+  watIsYyyy = Var "yyyy"
+  two_vars_env = Map.insert "xxxx" (IntVal 123) (Map.insert "yyyy" (IntVal 234) Map.empty)
+  xPlusY = Plus (Var "xxxx") (Var "yyyy")
+  -- \x -> x
+  lambdina = Lambda "x" (Var "x")
+  lambdona = Lambda "x" (Lambda "y" (Plus (Var "x") (Var "y")))
+  -- 12 + (\x -> x)(4 + 2)
+  sample = Plus (Lit 12) (App lambdina (Plus (Lit 4) (Lit 2))) -- IntVal 18
+  samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
+
+  testEval0WatIsXxxx :: Test
+  testEval0WatIsXxxx = 
+      TestCase $ assertEqual "eval0 should lookup a var"
+                             (IntVal 123) (eval0 two_vars_env watIsXxxx)
+
+  testEval0WatIsXPlusY :: Test
+  testEval0WatIsXPlusY = 
+      TestCase $ assertEqual "eval0 should sum two vars"
+                             (IntVal 357) (eval0 two_vars_env xPlusY)
+
+  testEval0SimpleApp :: Test
+  testEval0SimpleApp = 
+      TestCase $ assertEqual "eval0 should make a simple application"
+                             (IntVal 18) (eval0 Map.empty sample)
+
+  testEval0ComplexApp :: Test
+  testEval0ComplexApp = 
+      TestCase $ assertEqual "eval0 should make a complex application"
+                             (IntVal 127) (eval0 two_vars_env samplone)
+
+  testEval0CurriedApp :: Test
+  testEval0CurriedApp = 
+      TestCase $ assertEqual "eval0 should make a partial application"
+                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
+                             (eval0 Map.empty (App lambdona (Lit 4)))
+
+  main :: IO Counts
+  main = runTestTT $ TestList [
+    testEval0WatIsXxxx,
+    testEval0WatIsXPlusY,
+    testEval0SimpleApp,
+    testEval0ComplexApp,
+    testEval0CurriedApp
+                              ]
