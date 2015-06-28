@@ -6,7 +6,7 @@ Current development is in directory haskell/nilsson. Tests are provided, using h
 
 The idea is to implement the algorithm described in [1] avoiding the official mtl stuff and using instead the Lego blocks described in [2].
 
-The `mtl` library features transformers which implement a lot of each other's interfaces. This allows to invoke operations with little care about which layer of the monad pile we're in.
+Why's that? The `mtl` library features transformers which implement a lot of each other's interfaces. This allows to invoke operations with little care about which layer of the monad pile we're in.
 
 I believe that, in order to understand this complicated matter, it's better to start by keeping the various layers clearly separated and use `lift` consciously whenever we need one or another operation.
 

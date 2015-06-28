@@ -20,32 +20,44 @@ module TestNilsson where
   sample = Plus (Lit 12) (App lambdina (Plus (Lit 4) (Lit 2))) -- IntVal 18
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
-{-
+
   testEval2WatIsXxxx :: Test
   testEval2WatIsXxxx = 
       TestCase $ assertEqual "eval2 should lookup a var"
-                             (ET (I (Just (IntVal 4)))) (eval2 (Map.fromList [("x",IntVal 4)]) (Var "x"))
+        (ET (I (Just (IntVal 4)))) (eval2 (Map.fromList [("x",IntVal 4)]) (Var "x"))
+
+  testEval2WatIsXxxx2 :: Test
+  testEval2WatIsXxxx2 = 
+      TestCase $ assertEqual "eval2 should lookup a var"
+        (Just (IntVal 4)) (runEval2 $ eval2 (Map.fromList [("x",IntVal 4)]) (Var "x"))
 
   testEval2WatIsXPlusY :: Test
   testEval2WatIsXPlusY = 
       TestCase $ assertEqual "eval2 should sum two vars"
-                             (IntVal 357) (unI $ eval2 two_vars_env xPlusY)
+                             (Just (IntVal 357)) (runEval2 $ eval2 two_vars_env xPlusY)
 
   testEval2SimpleApp :: Test
   testEval2SimpleApp = 
       TestCase $ assertEqual "eval2 should make a simple application"
-                             (IntVal 18) (runEval2 $ eval2 Map.empty sample)
+                             (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sample)
 
   testEval2ComplexApp :: Test
   testEval2ComplexApp = 
       TestCase $ assertEqual "eval2 should make a complex application"
-                             (IntVal 127) (runEval2 $ eval2 two_vars_env samplone)
+                             (Just (IntVal 127)) (runEval2 $ eval2 two_vars_env samplone)
 
   testEval2CurriedApp :: Test
   testEval2CurriedApp = 
       TestCase $ assertEqual "eval2 should make a partial application"
-                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
-                             (runEval2 $ eval2 Map.empty (App lambdona (Lit 4)))-}
+                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))) 
+                             (runEval2 $ eval2 Map.empty (App lambdona (Lit 4)))
+
+  testEval2CurriedApp2 :: Test
+  testEval2CurriedApp2 = 
+      TestCase $ assertEqual "eval2 should spit Nothing in case of errore"
+                             (Nothing) 
+                             (runEval2 $ eval2 Map.empty (App lambdona (Var "inesistente")))
+{--}
 -----------------------------------------
 
   testEval1WatIsXxxx :: Test
@@ -112,10 +124,12 @@ module TestNilsson where
     testEval1WatIsXPlusY,
     testEval1SimpleApp,
     testEval1ComplexApp,
-    testEval1CurriedApp{-,
+    testEval1CurriedApp,
     testEval2WatIsXxxx,
+    testEval2WatIsXxxx2,
     testEval2WatIsXPlusY,
     testEval2SimpleApp,
     testEval2ComplexApp,
-    testEval2CurriedApp-}
+    testEval2CurriedApp,
+    testEval2CurriedApp2{--}
                                ]
