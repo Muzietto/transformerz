@@ -51,6 +51,7 @@ module Nilsson where
   -- run the monad
   runI :: I a -> a
   runI = unI
+  
   instance Monad I where
     return = I
     ia >>= faib = faib (unI ia)
@@ -67,19 +68,19 @@ module Nilsson where
 
   eval1 :: Env -> Exp -> I Value
   eval1 env (Lit i) = return $ IntVal i
-  eval1 env (Var n) = return $ fromJust $ Map.lookup n env
+  eval1 env (Var name) = return $ fromJust $ Map.lookup name env
   eval1 env (Plus e1 e2) = do (IntVal i1) <- eval1 env e1
                               (IntVal i2) <- eval1 env e2
                               return $ IntVal $ i1 + i2
   eval1 env (Lambda argname body) = return $ FunVal argname body env
   {-
-  eval1 env (App e1 e2) = do (FunVal argname body env') <- eval1 env e1
-                             v2 <- eval1 env e2
-                             eval1 (Map.insert argname v2 env') body
+  eval1 env (App lambda expr) = do (FunVal argname body env') <- eval1 env lambda
+                                   val <- eval1 env expr
+                                   eval1 (Map.insert argname val env') body
   -}
-  eval1 env (App e1 e2) = let (FunVal argname body env') = unI $ eval1 env e1
-                              v2 = unI $ eval1 env e2
-                          in eval1 (Map.insert argname v2 env') body
+  eval1 env (App lambda expr) = let (FunVal argname body env') = unI $ eval1 env lambda
+                                    val = unI $ eval1 env expr
+                                in eval1 (Map.insert argname val env') body
   ----------------------------------------------------------------------
   -- MaybeT, actually...
   newtype ET m a = ET (m (Maybe a))
@@ -160,7 +161,8 @@ module Nilsson where
   -------------------------------------------------------------------------
   newtype ST s m a = ST (s -> m (a, s))
   deriving instance Show (s -> m (a, s)) => Show (ST s m a)
-
+  deriving instance Eq (s -> m (a, s)) => Eq (ST s m a)
+  
   -- unwrap the OUTER monad, i.e. resolve its type
   unST :: (Monad m) => ST s m a -> s -> m (a, s)
   unST (ST m) = m

@@ -20,7 +20,7 @@ module TestNilsson where
   sample = Plus (Lit 12) (App lambdina (Plus (Lit 4) (Lit 2))) -- IntVal 18
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
-
+{-
   testEval2WatIsXxxx :: Test
   testEval2WatIsXxxx = 
       TestCase $ assertEqual "eval2 should lookup a var"
@@ -45,7 +45,7 @@ module TestNilsson where
   testEval2CurriedApp = 
       TestCase $ assertEqual "eval2 should make a partial application"
                              (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
-                             (runEval2 $ eval2 Map.empty (App lambdona (Lit 4)))
+                             (runEval2 $ eval2 Map.empty (App lambdona (Lit 4)))-}
 -----------------------------------------
 
   testEval1WatIsXxxx :: Test
@@ -112,10 +112,10 @@ module TestNilsson where
     testEval1WatIsXPlusY,
     testEval1SimpleApp,
     testEval1ComplexApp,
-    testEval1CurriedApp,
+    testEval1CurriedApp{-,
     testEval2WatIsXxxx,
     testEval2WatIsXPlusY,
     testEval2SimpleApp,
     testEval2ComplexApp,
-    testEval2CurriedApp
+    testEval2CurriedApp-}
                                ]
