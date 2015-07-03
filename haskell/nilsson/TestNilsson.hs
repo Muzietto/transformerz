@@ -21,6 +21,19 @@ module TestNilsson where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+  testEval3Lit123a :: Test
+  testEval3Lit123a = 
+      TestCase $ assertEqual "eval3 should return a ET(ST)"
+        (I (Just (IntVal 123), 0)) 
+        (unST (unET $ eval3 Map.empty (Lit 123)) 0)
+
+  testEval3Lit123b :: Test
+  testEval3Lit123b = 
+      TestCase $ assertEqual "eval3 should evaluate a Literal"
+        (Just (IntVal 123), 0) 
+        (runEval3 0 (eval3 Map.empty (Lit 123)))
+
+---------------------------------------
   testEval2WatIsXxxx :: Test
   testEval2WatIsXxxx = 
       TestCase $ assertEqual "eval2 should lookup a var"
@@ -131,5 +144,7 @@ module TestNilsson where
     testEval2SimpleApp,
     testEval2ComplexApp,
     testEval2CurriedApp,
-    testEval2CurriedApp2{--}
+    testEval2CurriedApp2,
+    testEval3Lit123a,
+    testEval3Lit123b{--}
                                ]

@@ -87,11 +87,11 @@ module Nilsson where
   deriving instance Show (m (Maybe a)) => Show (ET m a)
   deriving instance Eq (m (Maybe a)) => Eq (ET m a)
 
-  -- unwrap the OUTER monad, i.e. resolve its type
+  -- unwrap the OUTER monad, i.e. resolve its type (this is actually a RUNNER!!!)
   unET :: (Monad m) => ET m a -> m (Maybe a)
-  unET (ET m) = m
+  unET (ET m) = m -- runErrorT in mtl!
 
-  -- run the OUTER monad
+  -- run the OUTER monad (this is actually NOT a runner)
   runET :: Monad m => ET m a -> m a
   runET etma = do ma <- unET etma
                   case ma of 
@@ -163,15 +163,14 @@ module Nilsson where
   deriving instance Show (s -> m (a, s)) => Show (ST s m a)
   deriving instance Eq (s -> m (a, s)) => Eq (ST s m a)
   
-  -- unwrap the OUTER monad, i.e. resolve its type
+  -- unwrap the OUTER monad, i.e. resolve its type (this is actually a RUNNER!!!)
   unST :: (Monad m) => ST s m a -> s -> m (a, s)
-  unST (ST m) = m
+  unST (ST m) = m -- runStateT in mtl!
 
-  -- run the OUTER monad
+  -- extract the OUTER monad (this is actually NOT a runner!!!)
   runST :: Monad m => ST s m a -> s -> m a
   runST stsma = \s -> do (aaa, _) <- unST stsma s
                          return aaa
-
 
   instance (Monad m) => Monad (ST s m) where
     return x = ST (\s -> return (x, s))
@@ -234,25 +233,12 @@ module Nilsson where
   -- oppure: eHandle_di_m :: m (a,s) -> m (a,s) -> m (a,s) -- è come se dove c'è ST, il valore non è più :: a, ma :: (a,s)
 
   ----------------------------------------------------------------------------
-  type Eval3 s a = ST s (ET I) a -- = ST (s -> ET I (a, s)) = ST (s -> ET (I (Maybe (a, s))))
+  type Eval3 s a = ET (ST s I) a -- = ET (ST s I) (Maybe a) = ET (ST (s -> I (Maybe a, s)))
 
-  -- e3val s = (s, etia)
-  -- unST (ST m) = m
-  {-
-    ex2a :: ST Int (ET I) Int
-    ex2a= (sSet 3 >> eFail) ‘eHandle‘ sGet
-
-    runI (runST (runET ex2b) 0)
-  -}
-
-  -- resolve this!!!
-  --runEval3 :: Integer -> ST s (ET I) Value -> (Maybe Value, Integer)
-  --runEval3 s e3val = do (etiv, s') <- unST e3val s
-  --                      return (unI (unST etiv), s')
-
-  --runEval2 :: ET I Value -> Maybe Value
-  --runEval2 etia = unI (unET etia)
-
+  -- TODO complete this!!!
+  runEval3 :: Int -> Eval3 Int Value -> (Maybe Value, Int)
+  runEval3 s etstsintiv = unI $ unST (unET etstsintiv) s
+  
   eval3 :: Env -> Exp -> Eval3 Int Value
   eval3 env (Lit i)      = return $ IntVal i
   --eval3 env (Var name)   = let 
@@ -264,20 +250,9 @@ module Nilsson where
             | Lambda Name Exp
             | App Exp Exp
   -}
-  pippo = eval3 Map.empty (Lit 123)
-  pluto = unST pippo 0
-
-  {-
-    HOW TO USE values produced by eval3 :: ST Int (ET I) Value
-    unST e3val 0 :: ET I (Value, Int)
-    
-    pippo = eval3 Map.empty (Lit 123) 0
-    pippo :: ST Int (ET I) Value = ST (s -> ET I (Value, Int)) = ST (s -> ET (I (Maybe (Value, Int))))
-    
-    unST pippo 0 :: ET I (Value, Int) = ET (I (Maybe (Value, Int)))
-    unST pippo 0 = ET (I (Just (IntVal 123, 0)))
-    
-    unI $ unET $ unST pippo 0 = Just(IntVal 123, 0)
-  -}
-
-
+  
+  -- a few acrobatics...
+  etstsintiv = eval3 Map.empty (Lit 123)
+  stsintimaybev = unET etstsintiv
+  icouplemaybevi = unST stsintimaybev 0
+  (maybev,i) = unI icouplemaybevi
