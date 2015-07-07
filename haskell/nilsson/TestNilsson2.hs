@@ -12,12 +12,12 @@ module TestNilsson2 where
 
   testRunST :: Test
   testRunST = 
-      TestCase $ assertEqual "runST returns m a, not m (a, s)"
+      TestCase $ assertEqual "Nilsson's runST returns m a, not m (a, s)"
         (0) (runI $ runST sGet 0)
 
   testEx2a :: Test
   testEx2a = 
-      TestCase $ assertEqual "runST returns m a, not m (a, s)"
+      TestCase $ assertEqual "Nilsson's runST returns m a, not m (a, s)"
         (0) (runI $ runET $ runST ex2a 0)
 
 -------------------------------
@@ -26,19 +26,24 @@ module TestNilsson2 where
 
   testRunET :: Test
   testRunET = 
-      TestCase $ assertEqual "runET returns m a, not m (Maybe a)"
+      TestCase $ assertEqual "Nilsson's runET returns m a, not m (Maybe a)"
         (10) (runI $ runST (runET sGet) 10)
 
-
-  testEx2b :: Test
-  testEx2b = 
-      TestCase $ assertEqual "runET saves the day in case of eFail ?!?!?!?!?!?"
+  testEx2b_run :: Test
+  testEx2b_run = 
+      TestCase $ assertEqual "Nilsson's runET saves the day in case of eFail ?!?!?!?!?!?"
         (3) (runI $ runST (runET ex2b) 0)
+
+  testEx2b_un :: Test
+  testEx2b_un = 
+      TestCase $ assertEqual "Nilsson's unET returns (Maybe a, s)"
+        (Just 3, 3) (unI $ unST (unET ex2b) 0)
 {--}
   main :: IO Counts
   main = runTestTT $ TestList [
     testRunST,
     testEx2a,
     testRunET,
-    testEx2b
+    testEx2b_run,
+    testEx2b_un
                                ]
