@@ -242,7 +242,6 @@ module Nilsson where
   tick :: ST Int I Int
   tick = ST $ \n -> I (n, n+1)
   
-  -- TODO complete this!!!
   eval3 :: Env -> Exp -> Eval3 Int Value
   eval3 env (Lit i)      = do (lift tick)
                               return $ IntVal i
@@ -258,7 +257,8 @@ module Nilsson where
                                        return $ FunVal argname body env
   eval3 env (App lambda expr) = do (lift tick)
                                    FunVal argname body env' <- eval3 env lambda
-                                   eFail -- return $ 
+                                   val <- eval3 env expr
+                                   eval3 (Map.insert argname val env') body
   {-
             | Var Name
             | Plus Exp Exp

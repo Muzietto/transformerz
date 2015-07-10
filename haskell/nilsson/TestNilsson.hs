@@ -21,6 +21,29 @@ module TestNilsson where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+
+  testEval3SimpleApp :: Test
+  testEval3SimpleApp = 
+      TestCase $ assertEqual "eval3 should make a simple application"
+                             (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sample)
+
+  testEval3ComplexApp :: Test
+  testEval3ComplexApp = 
+      TestCase $ assertEqual "eval3 should make a complex application"
+                             (Just (IntVal 127), 9) (runEval3 0 $ eval3 two_vars_env samplone)
+
+  testEval3CurriedApp :: Test
+  testEval3CurriedApp = 
+      TestCase $ assertEqual "eval3 should make a partial application"
+                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), 4) 
+                             (runEval3 0 $ eval3 Map.empty (App lambdona (Lit 4)))
+
+  testEval3CurriedApp2 :: Test
+  testEval3CurriedApp2 = 
+      TestCase $ assertEqual "eval3 should spit Nothing in case of errore"
+                             (Nothing, 3) 
+                             (runEval3 0 $ eval3 Map.empty (App lambdona (Var "inesistente")))
+
   testEval3WatIsXPlusY :: Test
   testEval3WatIsXPlusY = 
       TestCase $ assertEqual "eval3 should sum two vars"
@@ -180,5 +203,9 @@ module TestNilsson where
     testEval3VarXxxx,
     testEval3VarUndefined,
     testEval3WatIsXPlusY,
-    testEval3WatIsXPlusCrash
+    testEval3WatIsXPlusCrash,
+    testEval3SimpleApp,
+    testEval3ComplexApp,
+    testEval3CurriedApp,
+    testEval3CurriedApp2
                                ]
