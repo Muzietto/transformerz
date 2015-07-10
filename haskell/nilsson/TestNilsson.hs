@@ -21,16 +21,40 @@ module TestNilsson where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+  testEval3WatIsXPlusY :: Test
+  testEval3WatIsXPlusY = 
+      TestCase $ assertEqual "eval3 should sum two vars"
+                             (Just (IntVal 357), 3) (runEval3 0 $ eval3 two_vars_env xPlusY)
+
+  testEval3WatIsXPlusCrash :: Test
+  testEval3WatIsXPlusCrash = 
+      TestCase $ assertEqual "eval3 should fail summing stuff when one ain't IntVal"
+                             (Nothing, 3) (runEval3 0 $ eval3 Map.empty (Plus (Lit 123) lambdina))
+
+  testEval3VarUndefined :: Test
+  testEval3VarUndefined = 
+      TestCase $ assertEqual "eval3 should fail on non-existing vars and update state"
+        (Nothing, 1) 
+        (runEval3 0 (eval3 two_vars_env (Var "zzzz")))
+
+  testEval3VarXxxx :: Test
+  testEval3VarXxxx = 
+      TestCase $ assertEqual "eval3 should lookup a Var and update state"
+        (Just (IntVal 123), 1) 
+        (runEval3 0 (eval3 two_vars_env watIsXxxx))
+
+---------------------------------------
+
   testEval3Lit123a :: Test
   testEval3Lit123a = 
-      TestCase $ assertEqual "eval3 should return a ET(ST)"
-        (I (Just (IntVal 123), 0)) 
+      TestCase $ assertEqual "eval3 should return a ET(ST) and update state"
+        (I (Just (IntVal 123), 1)) 
         (unST (unET $ eval3 Map.empty (Lit 123)) 0)
 
   testEval3Lit123b :: Test
   testEval3Lit123b = 
-      TestCase $ assertEqual "eval3 should evaluate a Literal"
-        (Just (IntVal 123), 0) 
+      TestCase $ assertEqual "eval3 should evaluate a Literal and update state"
+        (Just (IntVal 123), 1) 
         (runEval3 0 (eval3 Map.empty (Lit 123)))
 
 ---------------------------------------
@@ -48,6 +72,11 @@ module TestNilsson where
   testEval2WatIsXPlusY = 
       TestCase $ assertEqual "eval2 should sum two vars"
                              (Just (IntVal 357)) (runEval2 $ eval2 two_vars_env xPlusY)
+
+  testEval2WatIsXPlusCrash :: Test
+  testEval2WatIsXPlusCrash = 
+      TestCase $ assertEqual "eval2 should fail summing stuff when one ain't IntVal"
+                             (Nothing) (runEval2 $ eval2 Map.empty (Plus (Lit 123) lambdina))
 
   testEval2SimpleApp :: Test
   testEval2SimpleApp = 
@@ -141,10 +170,15 @@ module TestNilsson where
     testEval2WatIsXxxx,
     testEval2WatIsXxxx2,
     testEval2WatIsXPlusY,
+    testEval2WatIsXPlusCrash,
     testEval2SimpleApp,
     testEval2ComplexApp,
     testEval2CurriedApp,
     testEval2CurriedApp2,
     testEval3Lit123a,
-    testEval3Lit123b{--}
+    testEval3Lit123b,
+    testEval3VarXxxx,
+    testEval3VarUndefined,
+    testEval3WatIsXPlusY,
+    testEval3WatIsXPlusCrash
                                ]

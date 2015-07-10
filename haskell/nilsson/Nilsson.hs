@@ -152,8 +152,8 @@ module Nilsson where
                                 (IntVal i1, IntVal i2) -> return $ IntVal $ i1 + i2
                                 _ -> eFail
   eval2 env (Lambda argname body) = return $ FunVal argname body env
-  eval2 env (App e1 e2)           = do v1 <- eval2 env e1
-                                       v2 <- eval2 env e2
+  eval2 env (App lambda expr)     = do v1 <- eval2 env lambda
+                                       v2 <- eval2 env expr
                                        case v1 of
                                          FunVal argname body env' -> eval2 (Map.insert argname v2 env') body
                                          _ -> eFail
@@ -235,15 +235,30 @@ module Nilsson where
   ----------------------------------------------------------------------------
   type Eval3 s a = ET (ST s I) a -- = ET (ST s I) (Maybe a) = ET (ST (s -> I (Maybe a, s)))
 
-  -- TODO complete this!!!
   runEval3 :: Int -> Eval3 Int Value -> (Maybe Value, Int)
   runEval3 s etstsintiv = unI $ unST (unET etstsintiv) s
   
+  -- tick :: (Num s, S ms s, Monad m) => ms s m s
+  tick :: ST Int I Int
+  tick = ST $ \n -> I (n, n+1)
+  
+  -- TODO complete this!!!
   eval3 :: Env -> Exp -> Eval3 Int Value
-  eval3 env (Lit i)      = return $ IntVal i
-  --eval3 env (Var name)   = let 
-
-  --eval3 env (Plus e1 e2) = do v1 <-
+  eval3 env (Lit i)      = do (lift tick)
+                              return $ IntVal i
+  eval3 env (Var name)   = do (lift tick)
+                              ET $ return $ Map.lookup name env  
+  eval3 env (Plus e1 e2) = do (lift tick)
+                              v1 <- eval3 env e1
+                              v2 <- eval3 env e2
+                              case (v1, v2) of
+                                (IntVal i1, IntVal i2) -> return $ IntVal $ i1 + i2
+                                _ -> eFail
+  eval3 env (Lambda argname body) = do (lift tick)
+                                       return $ FunVal argname body env
+  eval3 env (App lambda expr) = do (lift tick)
+                                   FunVal argname body env' <- eval3 env lambda
+                                   eFail -- return $ 
   {-
             | Var Name
             | Plus Exp Exp
