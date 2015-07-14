@@ -1,11 +1,11 @@
 
-module TestNilsson2 where 
+module TestNilsson_20 where 
 
   import Data.Maybe
   import qualified Data.Map as Map
   import Text.Show.Functions
   import Test.HUnit
-  import Nilsson
+  import Nilsson_01
 
   ex2a :: ST Int (ET I) Int
   ex2a = eHandle (sSet 3 >> eFail) sGet

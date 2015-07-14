@@ -1,11 +1,11 @@
 
-module TestNilsson where 
+module TestNilsson_01 where 
 
   import Data.Maybe
   import qualified Data.Map as Map
   import Text.Show.Functions
   import Test.HUnit
-  import Nilsson
+  import Nilsson_01
 
   -- Expressions for exercises
   -- var xxxx, yyyy
