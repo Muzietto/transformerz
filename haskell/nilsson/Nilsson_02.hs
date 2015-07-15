@@ -77,23 +77,31 @@ module Nilsson_02 where
                           return $ IntVal i
   eval4c env (Var name) = do lift $ tell ["lookup " ++ name]
                              case (Map.lookup name env) of
-                               Just val -> do lift $ tell ["ok"]
+                               Just val -> do lift $ tell ["lookup ok"]
                                               return $ val
-                               Nothing -> do lift $ tell ["ko"]
+                               Nothing -> do lift $ tell ["lookup ko"]
                                              eFail
   eval4c env (Plus e1 e2) = 
        do lift $ tell ["sum"]
           v1 <- eval4c env e1
           v2 <- eval4c env e2
           case (v1, v2) of
-            (IntVal i1, IntVal i2) -> do lift $ tell ["ok"]
+            (IntVal i1, IntVal i2) -> do lift $ tell ["sum ok"]
                                          return $ IntVal (i1 + i2)
-            _ -> do lift $ tell ["ko"]
+            _ -> do lift $ tell ["sum ko"]
                     eFail
   eval4c env (Lambda argname body) =
        do lift $ tell ["lambda"]
           return $ FunVal argname body env
-
+  eval4c env (App lambda exp) =
+       do lift $ tell ["application"]
+          val <- eval4c env exp
+          funval <- eval4c env lambda
+          case funval of
+            FunVal argname body env' -> do lift $ tell ["application ok"]
+                                           eval4c (Map.insert argname val env') body
+            _ -> do lift $ tell ["application ko"]
+                    eFail
 
 
 

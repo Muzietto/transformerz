@@ -27,38 +27,38 @@ module TestNilsson_02 where
   testEval4cLiteral = 
       TestCase $ assertEqual "eval4c should evaluate a silly literal"
                              (Just (IntVal 18), ["literal"]) (runEval4c $ eval4c Map.empty (Lit 18))
-{-
-  testEval3SimpleApp :: Test
-  testEval3SimpleApp = 
-      TestCase $ assertEqual "eval3 should make a simple application"
-                             (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sample)
+{--}
+  testEval4cSimpleApp :: Test
+  testEval4cSimpleApp = 
+      TestCase $ assertEqual "eval4c should make a simple application"
+                             (Just (IntVal 18), ["sum","literal","application","sum","literal","literal","sum ok","lambda","application ok","lookup x","lookup ok","sum ok"]) (runEval4c $ eval4c Map.empty sample)
 
-  testEval3ComplexApp :: Test
-  testEval3ComplexApp = 
-      TestCase $ assertEqual "eval3 should make a complex application"
-                             (Just (IntVal 127), 9) (runEval3 0 $ eval3 two_vars_env samplone)
+  testEval4cComplexApp :: Test
+  testEval4cComplexApp = 
+      TestCase $ assertEqual "eval4c should make a complex application"
+                             (Just (IntVal 127), ["application","lookup xxxx","lookup ok","application","literal","lambda","application ok","lambda","application ok","sum","lookup x","lookup ok","lookup y","lookup ok","sum ok"]) (runEval4c $ eval4c two_vars_env samplone)
 
-  testEval3CurriedApp :: Test
-  testEval3CurriedApp = 
-      TestCase $ assertEqual "eval3 should make a partial application"
-                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), 4) 
-                             (runEval3 0 $ eval3 Map.empty (App lambdona (Lit 4)))
+  testEval4cCurriedApp :: Test
+  testEval4cCurriedApp = 
+      TestCase $ assertEqual "eval4c should make a partial application"
+                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), ["application","literal","lambda","application ok","lambda"]) 
+                             (runEval4c $ eval4c Map.empty (App lambdona (Lit 4)))
 
-  testEval3CurriedApp2 :: Test
-  testEval3CurriedApp2 = 
-      TestCase $ assertEqual "eval3 should spit Nothing in case of errore"
-                             (Nothing, 3) 
-                             (runEval3 0 $ eval3 Map.empty (App lambdona (Var "inesistente")))
--}
+  testEval4cCurriedApp2 :: Test
+  testEval4cCurriedApp2 = 
+      TestCase $ assertEqual "eval4c should spit Nothing in case of errore"
+                             (Nothing, ["application","lookup inesistente","lookup ko"]) 
+                             (runEval4c $ eval4c Map.empty (App lambdona (Var "inesistente")))
+
   testEval4cWatIsXPlusY :: Test
   testEval4cWatIsXPlusY = 
       TestCase $ assertEqual "eval4c should sum two vars"
                              (Just (IntVal 357), ["sum",
                                                   "lookup xxxx",
-                                                  "ok",
+                                                  "lookup ok",
                                                   "lookup yyyy",
-                                                  "ok",
-                                                  "ok"
+                                                  "lookup ok",
+                                                  "sum ok"
                                                   ]) (runEval4c $ eval4c two_vars_env xPlusY)
 
   testEval4cWatIsXPlusCrash :: Test
@@ -67,29 +67,33 @@ module TestNilsson_02 where
                              (Nothing, ["sum",
                                        "literal",
                                        "lambda",
-                                       "ko"
+                                       "sum ko"
                              ]) (runEval4c $ eval4c Map.empty (Plus (Lit 123) lambdina))
         
   testEval4cVarUndefined :: Test
   testEval4cVarUndefined = 
       TestCase $ assertEqual "eval4c should fail on non-existing vars and write about it"
-        (Nothing, ["lookup zzzz","ko"])
+        (Nothing, ["lookup zzzz","lookup ko"])
         (runEval4c (eval4c two_vars_env (Var "zzzz")))
 
   testEval4cVarXxxx :: Test
   testEval4cVarXxxx = 
       TestCase $ assertEqual "eval4c should lookup a Var and write about it"
-        (Just (IntVal 123), ["lookup xxxx","ok"]) 
+        (Just (IntVal 123), ["lookup xxxx","lookup ok"]) 
         (runEval4c (eval4c two_vars_env watIsXxxx))
         
 
         
   main :: IO Counts
   main = runTestTT $ TestList [
-
-    testEval4cLiteral,
-    testEval4cVarXxxx,
-    testEval4cVarUndefined,
-    testEval4cWatIsXPlusY,
-    testEval4cWatIsXPlusCrash
-                               ]
+                                testEval4cLiteral,
+                                testEval4cVarXxxx,
+                                testEval4cVarUndefined,
+                                testEval4cWatIsXPlusY,
+                                testEval4cWatIsXPlusCrash,
+                                testEval4cSimpleApp,
+                                testEval4cCurriedApp2,
+                                testEval4cCurriedApp,
+                                testEval4cComplexApp,
+                                testEval4cSimpleApp
+                              ]
