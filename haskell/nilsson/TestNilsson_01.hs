@@ -40,7 +40,7 @@ module TestNilsson_01 where
 
   testEval3CurriedApp2 :: Test
   testEval3CurriedApp2 = 
-      TestCase $ assertEqual "eval3 should spit Nothing in case of errore"
+      TestCase $ assertEqual "eval3 should spit Nothing in case of errors"
                              (Nothing, 3) 
                              (runEval3 0 $ eval3 Map.empty (App lambdona (Var "inesistente")))
 
@@ -119,7 +119,7 @@ module TestNilsson_01 where
 
   testEval2CurriedApp2 :: Test
   testEval2CurriedApp2 = 
-      TestCase $ assertEqual "eval2 should spit Nothing in case of errore"
+      TestCase $ assertEqual "eval2 should spit Nothing in case of errors"
                              (Nothing) 
                              (runEval2 $ eval2 Map.empty (App lambdona (Var "inesistente")))
 {--}

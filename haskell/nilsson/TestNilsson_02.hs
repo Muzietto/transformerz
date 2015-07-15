@@ -23,6 +23,66 @@ module TestNilsson_02 where
 ----------------------------
 
 
+  testEval4dLiteral :: Test
+  testEval4dLiteral = 
+      TestCase $ assertEqual "eval4d should evaluate a silly literal while updating state"
+                             ((Just (IntVal 18), ["literal"]), 1) (runEval4d 0 $ eval4d Map.empty (Lit 18))
+{--}
+  testEval4dSimpleApp :: Test
+  testEval4dSimpleApp = 
+      TestCase $ assertEqual "eval4d should make a simple application while updating state"
+                             ((Just (IntVal 18), ["sum","literal","application","sum","literal","literal","sum ok","lambda","application ok","lookup x","lookup ok","sum ok"]), 8) (runEval4d 0 $ eval4d Map.empty sample)
+
+  testEval4dComplexApp :: Test
+  testEval4dComplexApp = 
+      TestCase $ assertEqual "eval4d should make a complex application while updating state"
+                             ((Just (IntVal 127), ["application","lookup xxxx","lookup ok","application","literal","lambda","application ok","lambda","application ok","sum","lookup x","lookup ok","lookup y","lookup ok","sum ok"]), 9) (runEval4d 0 $ eval4d two_vars_env samplone)
+
+  testEval4dCurriedApp :: Test
+  testEval4dCurriedApp = 
+      TestCase $ assertEqual "eval4d should make a partial application while updating state"
+                             ((Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), ["application","literal","lambda","application ok","lambda"]), 4) 
+                             (runEval4d 0 $ eval4d Map.empty (App lambdona (Lit 4)))
+
+  testEval4dCurriedApp2 :: Test
+  testEval4dCurriedApp2 = 
+      TestCase $ assertEqual "eval4d should spit Nothing in case of errors while updating state"
+                             ((Nothing, ["application","lookup inesistente","lookup ko"]), 2) 
+                             (runEval4d 0 $ eval4d Map.empty (App lambdona (Var "inesistente")))
+
+  testEval4dWatIsXPlusY :: Test
+  testEval4dWatIsXPlusY = 
+      TestCase $ assertEqual "eval4d should sum two vars while updating state"
+                             ((Just (IntVal 357), ["sum",
+                                                  "lookup xxxx",
+                                                  "lookup ok",
+                                                  "lookup yyyy",
+                                                  "lookup ok",
+                                                  "sum ok"
+                                                  ]), 3) (runEval4d 0 $ eval4d two_vars_env xPlusY)
+
+  testEval4dWatIsXPlusCrash :: Test
+  testEval4dWatIsXPlusCrash = 
+      TestCase $ assertEqual "eval4d should fail summing stuff when one ain't IntVal while updating state"
+                             ((Nothing, ["sum",
+                                       "literal",
+                                       "lambda",
+                                       "sum ko"
+                             ]), 3) (runEval4d 0 $ eval4d Map.empty (Plus (Lit 123) lambdina))
+        
+  testEval4dVarUndefined :: Test
+  testEval4dVarUndefined = 
+      TestCase $ assertEqual "eval4d should fail on non-existing vars and write about it while updating state"
+        ((Nothing, ["lookup zzzz","lookup ko"]), 1)
+        (runEval4d 0 (eval4d two_vars_env (Var "zzzz")))
+
+  testEval4dVarXxxx :: Test
+  testEval4dVarXxxx = 
+      TestCase $ assertEqual "eval4d should lookup a Var and write about it while updating state"
+        ((Just (IntVal 123), ["lookup xxxx","lookup ok"]), 1) 
+        (runEval4d 0 (eval4d two_vars_env watIsXxxx))
+-----------
+
   testEval4cLiteral :: Test
   testEval4cLiteral = 
       TestCase $ assertEqual "eval4c should evaluate a silly literal"
@@ -46,7 +106,7 @@ module TestNilsson_02 where
 
   testEval4cCurriedApp2 :: Test
   testEval4cCurriedApp2 = 
-      TestCase $ assertEqual "eval4c should spit Nothing in case of errore"
+      TestCase $ assertEqual "eval4c should spit Nothing in case of errors"
                              (Nothing, ["application","lookup inesistente","lookup ko"]) 
                              (runEval4c $ eval4c Map.empty (App lambdona (Var "inesistente")))
 
@@ -95,5 +155,16 @@ module TestNilsson_02 where
                                 testEval4cCurriedApp2,
                                 testEval4cCurriedApp,
                                 testEval4cComplexApp,
-                                testEval4cSimpleApp
+                                testEval4cSimpleApp,
+                                
+                                testEval4dLiteral,
+                                testEval4dVarXxxx,
+                                testEval4dVarUndefined,
+                                testEval4dWatIsXPlusY,
+                                testEval4dWatIsXPlusCrash,
+                                testEval4dSimpleApp,
+                                testEval4dCurriedApp2,
+                                testEval4dCurriedApp,
+                                testEval4dComplexApp,
+                                testEval4dSimpleApp
                               ]

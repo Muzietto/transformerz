@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, StandaloneDeriving, FlexibleContexts, UndecidableInstances, DeriveFunctor #-}
-module Nilsson_02 where
+module Nilsson_02 where -- WriterT
 
   import Data.Maybe
   import Data.Monoid
@@ -103,9 +103,55 @@ module Nilsson_02 where
             _ -> do lift $ tell ["application ko"]
                     eFail
 
+------------- ET + WT + ST -----------------
 
+  type Eval4d s a = ET (WT [String] (ST s I)) a
+               -- = ET (WT [String] (ST s I)) (Maybe a)
+               -- = ET (WT (ST s I)(Maybe a, [String]))
+               -- = ET (WT (ST (s -> I((Maybe a, [String]), s))))
 
+  runEval4d :: Int -> Eval4d Int Value -> ((Maybe Value, [String]), Int)
+  runEval4d s etwtstinticcmaybevalstrarraint = 
+              unI $ unST (unWT (unET etwtstinticcmaybevalstrarraint)) s
 
+  eval4d :: Env -> Exp -> Eval4d Int Value
+  eval4d env (Lit i) = do lift $ lift tick
+                          lift $ tell ["literal"]
+                          return $ IntVal i
+  eval4d env (Var name) = do lift $ lift tick
+                             lift $ tell ["lookup " ++ name]
+                             case (Map.lookup name env) of
+                               (Just val) -> do lift $ tell ["lookup ok"]
+                                                return $ val
+                               Nothing -> do lift $ tell ["lookup ko"]
+                                             eFail
+  eval4d env (Plus e1 e2) = do lift $ lift tick
+                               lift $ tell ["sum"]
+                               v1 <- eval4d env e1
+                               v2 <- eval4d env e2
+                               case (v1, v2) of
+                                 (IntVal i1, IntVal i2) -> do lift $ tell ["sum ok"]
+                                                              return $ IntVal $ i1 + i2
+                                 _ -> do lift $ tell ["sum ko"]
+                                         eFail
+  eval4d env (Lambda argname body) =
+       do lift $ lift tick
+          lift $ tell ["lambda"]
+          return $ FunVal argname body env
+  eval4d env (App lambda exp) =
+       do lift $ lift tick
+          lift $ tell ["application"]
+          val <- eval4d env exp
+          funval <- eval4d env lambda
+          case funval of
+            FunVal argname body env' -> do lift $ tell ["application ok"]
+                                           eval4d (Map.insert argname val env') body
+            _ -> do lift $ tell ["application ko"]
+                    eFail
+  
+  
+  
+  
 --
 
 
