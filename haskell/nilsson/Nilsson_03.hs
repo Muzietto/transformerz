@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, StandaloneDeriving, FlexibleContexts, UndecidableInstances, DeriveFunctor #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, StandaloneDeriving, FlexibleContexts, UndecidableInstances, DeriveFunctor, InstanceSigs #-}
 module Nilsson_03 where -- ReaderT
 
   import Data.Maybe
@@ -24,38 +24,39 @@ module Nilsson_03 where -- ReaderT
     rtrma >>= fartrmb = RT $ \r -> do a <- unRT rtrma r
                                       unRT (fartrmb a) r
 
-    {-
-  instance (Monoid w, Functor m, Monad m) => Applicative (WT w m) where
+  instance (Functor m, Monad m) => Applicative (RT r m) where
     pure = return
     -- af (a -> b) <*> af a -> af b
-    -- (a -> b, w) <*> (a, w) -> (b, w)
-    wtwmfab <*> wtwma = WT $ do (fab, w1) <- unWT wtwmfab 
-                                (a, w2) <- unWT wtwma
-                                return (fab a, mappend w1 w2)
+    rtrmfab <*> rtrma = RT $ \r -> do fab <- unRT rtrmfab r
+                                      a <- unRT rtrma r
+                                      return (fab a)
   
-  instance (Monoid w, Functor m, Monad m) => Functor (WT w m) where
-    fmap fab wtwma = WT $ do (a, w) <- unWT wtwma
-                             return (fab a, w)
-
+    
+  instance (Functor m, Monad m) => Functor (RT r m) where
+    fmap fab rtrma = RT $ \r -> do a <- unRT rtrma r
+                                   return (fab a)
 ---------------------------------------------
-  -- kind of MonadWriter
-  class (Monoid w, Monad m) => W w m | m -> w where
-    -- tell w is an action that produces the output w
-    tell :: w -> m ()
-    -- listen m is an action that executes action m and adds its output to the value of the computation
-    listen :: m a -> m (a, w)
-    -- pass m is an action that executes action m (which returns a value and a function) and returns the value applying the function to the output
-    -- pass :: m (a, w -> w) -> m a 
+  -- kind of MonadReader
+  class (Monad m) => R r m | m -> r where
+    -- ask retrieves the monad environment
+    ask :: m r
+    -- executes ONE computation in a modified environment
+    -- (r -> r) = the function that modifies the environment
+    local :: (r -> r) -> m a -> m a
 
-  instance (Monoid w, Monad m) => W w (WT w m) where
-    --tell :: (Monoid w, Monad m) => w -> WT w m ()
-    tell msg = WT $ return ((), msg)
-    --listen :: (Monoid w, Monad m) => WT w m a -> WT w m (a, w)
-    listen ma = WT $ do (a, w) <- unWT ma
-                        return ((a, w), w)
---    listen ma = do a <- ma
-  --                 return (a, mempty)
+  instance (Monad m) => R r (RT r m) where
+    ask :: (RT r m) r
+    --ask = RT (\x -> x) r -- my attempt
+    ask = RT return -- from hackage
 
+    local :: (r -> r) -- ^ The function to modify the environment
+        -> (RT r m) a -- ^ Computation to run in the modified the environment
+        -> (RT r m) a
+    local f m = RT $ unRT m . f
+    -- local modifier rtrma = RT $ do env <- ask -- my attempt
+       --                           return $
+
+                                  {-
   instance (Monoid w, Monad m) => MonadTransformer (WT w) m where
     -- lift :: m a -> t m a
     -- lift :: m a -> WT w m a = WT (m (a, w))
