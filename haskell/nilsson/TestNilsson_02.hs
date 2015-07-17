@@ -27,7 +27,7 @@ module TestNilsson_02 where
   testEval4dLiteral = 
       TestCase $ assertEqual "eval4d should evaluate a silly literal while updating state"
                              ((Just (IntVal 18), ["literal"]), 1) (runEval4d 0 $ eval4d Map.empty (Lit 18))
-{--}
+
   testEval4dSimpleApp :: Test
   testEval4dSimpleApp = 
       TestCase $ assertEqual "eval4d should make a simple application while updating state"

@@ -23,6 +23,67 @@ module TestNilsson_03 where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+------------- RT + ET + WT + ST -----------------
+
+  testEval5dLiteral :: Test
+  testEval5dLiteral = 
+      TestCase $ assertEqual "eval5d should evaluate a silly literal while updating state"
+                             ((Just (IntVal 18), ["literal"]), 1) (runEval5d Map.empty 0 $ eval5d (Lit 18))
+
+  testEval5dSimpleApp :: Test
+  testEval5dSimpleApp = 
+      TestCase $ assertEqual "eval5d should make a simple application while updating state"
+                             ((Just (IntVal 18), ["sum","literal","application","sum","literal","literal","sum ok","lambda","application ok","lookup x","lookup ok","sum ok"]), 8) (runEval5d Map.empty 0 $ eval5d sample)
+
+  testEval5dComplexApp :: Test
+  testEval5dComplexApp = 
+      TestCase $ assertEqual "eval5d should make a complex application while updating state"
+                             ((Just (IntVal 127), ["application","lookup xxxx","lookup ok","application","literal","lambda","application ok","lambda","application ok","sum","lookup x","lookup ok","lookup y","lookup ok","sum ok"]), 9) (runEval5d two_vars_env 0 $ eval5d samplone)
+
+  testEval5dCurriedApp :: Test
+  testEval5dCurriedApp = 
+      TestCase $ assertEqual "eval5d should make a partial application while updating state"
+                             ((Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), ["application","literal","lambda","application ok","lambda"]), 4) 
+                             (runEval5d Map.empty 0 $ eval5d (App lambdona (Lit 4)))
+
+  testEval5dCurriedApp2 :: Test
+  testEval5dCurriedApp2 = 
+      TestCase $ assertEqual "eval5d should spit Nothing in case of errors while updating state"
+                             ((Nothing, ["application","lookup inesistente","lookup ko"]), 2) 
+                             (runEval5d Map.empty 0 $ eval5d (App lambdona (Var "inesistente")))
+
+  testEval5dWatIsXPlusY :: Test
+  testEval5dWatIsXPlusY = 
+      TestCase $ assertEqual "eval5d should sum two vars while updating state"
+                             ((Just (IntVal 357), ["sum",
+                                                  "lookup xxxx",
+                                                  "lookup ok",
+                                                  "lookup yyyy",
+                                                  "lookup ok",
+                                                  "sum ok"
+                                                  ]), 3) (runEval5d two_vars_env 0 $ eval5d xPlusY)
+
+  testEval5dWatIsXPlusCrash :: Test
+  testEval5dWatIsXPlusCrash = 
+      TestCase $ assertEqual "eval5d should fail summing stuff when one ain't IntVal while updating state"
+                             ((Nothing, ["sum",
+                                       "literal",
+                                       "lambda",
+                                       "sum ko"
+                             ]), 3) (runEval5d Map.empty 0 $ eval5d (Plus (Lit 123) lambdina))
+        
+  testEval5dVarUndefined :: Test
+  testEval5dVarUndefined = 
+      TestCase $ assertEqual "eval5d should fail on non-existing vars and write about it while updating state"
+        ((Nothing, ["lookup zzzz","lookup ko"]), 1)
+        (runEval5d two_vars_env 0 (eval5d (Var "zzzz")))
+
+  testEval5dVarXxxx :: Test
+  testEval5dVarXxxx = 
+      TestCase $ assertEqual "eval5d should lookup a Var and write about it while updating state"
+        ((Just (IntVal 123), ["lookup xxxx","lookup ok"]), 1) 
+        (runEval5d two_vars_env 0 (eval5d watIsXxxx))
+
 ------------- RT + ET + ST -----------------
 
   testEval5cLiteral :: Test
@@ -61,7 +122,7 @@ module TestNilsson_03 where
   testEval5cCurriedApp2 :: Test
   testEval5cCurriedApp2 = 
       TestCase $ assertEqual "eval5c should spit Nothing in case of errors"
-                             (Nothing, 3) 
+                             (Nothing, 2) 
                              (runEval5c Map.empty 0 $ eval5c (App lambdona (Var "inesistente")))
 
   testEval5cWatIsXPlusY :: Test
@@ -207,5 +268,14 @@ module TestNilsson_03 where
                                 testEval5cCurriedApp,
                                 testEval5cCurriedApp2,
                                 testEval5cWatIsXPlusY,
-                                testEval5cWatIsXPlusCrash
+                                testEval5cWatIsXPlusCrash,
+                                testEval5dLiteral,
+                                testEval5dVarUndefined,
+                                testEval5dVarXxxx,
+                                testEval5dSimpleApp,
+                                testEval5dComplexApp,
+                                testEval5dCurriedApp,
+                                testEval5dCurriedApp2,
+                                testEval5dWatIsXPlusY,
+                                testEval5dWatIsXPlusCrash
                               ]

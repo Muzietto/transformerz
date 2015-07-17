@@ -85,8 +85,8 @@ module Nilsson_03 where -- ReaderT
   eval5 (Lambda argname body) = do env <- ask
                                    return $ FunVal argname body env
   eval5 (App lambda exp) =
-        do funval <- eval5 lambda
-           val <- eval5 exp
+        do val <- eval5 exp
+           funval <- eval5 lambda
            case funval of
              FunVal argname body env' -> 
                   do local (const $ Map.insert argname val env') (eval5 body)
@@ -115,8 +115,8 @@ module Nilsson_03 where -- ReaderT
   eval5b (Lambda argname body) = do env <- lift ask
                                     return $ FunVal argname body env
   eval5b (App lambda exp) =
-        do funval <- eval5b lambda
-           val <- eval5b exp
+        do val <- eval5b exp
+           funval <- eval5b lambda
            case funval of
              FunVal argname body env' -> 
                   let body' = runET $ eval5b body
@@ -154,8 +154,8 @@ module Nilsson_03 where -- ReaderT
                                     return $ FunVal argname body env
   eval5c (App lambda exp) =
         do lift $ lift tick
-           funval <- eval5c lambda
            val <- eval5c exp
+           funval <- eval5c lambda
            case funval of
              FunVal argname body env' -> 
                   do local (const $ Map.insert argname val env') (eval5c body)
@@ -163,5 +163,52 @@ module Nilsson_03 where -- ReaderT
   
   
   --
+------------- RT + ET + WT + ST -----------------
 
+  type Eval5d a = RT Env (ET (WT [String] (ST Int I))) a
+            --  = RT (Env -> ET (WT [String] (ST Int I)) a)
+            --  = RT (Env -> ET (WT [String] (ST Int I)) (Maybe a))
+            --  = RT (Env -> ET (ST (Int -> I ((Maybe a, [String]), Int))))
+  
+  runEval5d :: Env -> Int -> Eval5d a -> ((Maybe a, [String]), Int)
+  runEval5d env s rtenvetstinticcmaybeastrarraint = unI (unST (unWT (unET (unRT rtenvetstinticcmaybeastrarraint env))) s)
+  
+  eval5d :: Exp -> Eval5d Value
+  eval5d (Lit i) = do lift $ lift $ tell ["literal"]
+                      lift $ lift $ lift tick
+                      return $ IntVal i
+  eval5d (Var name) = do lift $ lift $ tell ["lookup " ++ name]
+                         lift $ lift $ lift tick
+                         env <- ask
+                         case (Map.lookup name env) of
+                           Just val -> do lift $ lift $ tell ["lookup ok"]
+                                          return val
+                           Nothing -> do lift $ lift $ tell ["lookup ko"]
+                                         lift eFail
+  eval5d (Plus e1 e2) = do lift $ lift $ tell ["sum"]
+                           lift $ lift $ lift tick
+                           v1 <- eval5d e1
+                           v2 <- eval5d e2
+                           case (v1,v2) of
+                             (IntVal i1, IntVal i2) -> do lift $ lift $ tell ["sum ok"]
+                                                          return $ IntVal $ i1 + i2
+                             _ -> do lift $ lift $ tell ["sum ko"]
+                                     lift eFail
+  eval5d (Lambda argname body) = do lift $ lift $ tell ["lambda"]
+                                    lift $ lift $ lift tick
+                                    env <- ask
+                                    return $ FunVal argname body env
+  eval5d (App lambda exp) =
+        do lift $ lift $ tell ["application"]
+           lift $ lift $ lift tick
+           val <- eval5d exp
+           funval <- eval5d lambda
+           case funval of
+             FunVal argname body env' -> 
+                  do lift $ lift $ tell ["application ok"]
+                     local (const $ Map.insert argname val env') (eval5d body)
+             _ -> do lift $ lift $ tell ["application ko"]
+                     lift eFail
+  
+  
 
