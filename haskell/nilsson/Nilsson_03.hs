@@ -65,10 +65,11 @@ module Nilsson_03 where -- ReaderT
 ------------- RT + ET -----------------
 
   type Eval5 a = RT Env (ET I) a
-            --  = RT (Env -> ET I (Maybe a)
+            --  = RT (Env -> ET I a)
+            --  = RT (Env -> ET I (Maybe a))
   
   runEval5 :: Env -> Eval5 a -> Maybe a
-  runEval5 env rtenvetimaybev = unI $ unET $ unRT rtenvetimaybev env
+  runEval5 env rtenvetimaybea = unI $ unET $ unRT rtenvetimaybea env
   
   eval5 :: Exp -> Eval5 Value
   eval5 (Lit i) = return $ IntVal i
@@ -91,7 +92,39 @@ module Nilsson_03 where -- ReaderT
                   do local (const $ Map.insert argname val env') (eval5 body)
              _ -> lift eFail
   
-    
+------------- ET + RT -----------------
+
+  type Eval5b a = ET (RT Env I) a
+            -- = ET (RT Env I) (Maybe a)
+            -- = ET (RT (Env -> I (Maybe a))
+  
+  runEval5b :: Env -> Eval5b a -> Maybe a
+  runEval5b env etrtenvimaybea = unI $ unRT (unET etrtenvimaybea) env
+
+  eval5b :: Exp -> Eval5b Value
+  eval5b (Lit i) = return $ IntVal i
+  eval5b (Var name) = do env <- lift ask
+                         case (Map.lookup name env) of
+                          Just val -> return val
+                          Nothing -> eFail
+  eval5b (Plus e1 e2) = do v1 <- eval5b e1
+                           v2 <- eval5b e2
+                           case (v1,v2) of
+                             (IntVal i1, IntVal i2) -> return $ IntVal $ i1 + i2
+                             _ -> eFail
+  eval5b (Lambda argname body) = do env <- lift ask
+                                    return $ FunVal argname body env
+  eval5b (App lambda exp) =
+        do funval <- eval5b lambda
+           val <- eval5b exp
+           case funval of
+             FunVal argname body env' -> 
+                  let body' = runET $ eval5b body
+                  in do lift (local (const $ Map.insert argname val env') body')
+             _ -> eFail
+  
+  {-
+    -}
 ------------- RT + ET + ST -----------------
   
   --
