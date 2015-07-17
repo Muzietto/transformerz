@@ -23,6 +23,58 @@ module TestNilsson_03 where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+------------- RT + ET + ST -----------------
+
+  testEval5cLiteral :: Test
+  testEval5cLiteral = 
+      TestCase $ assertEqual "eval5c should evaluate a silly literal"
+               (Just (IntVal 18), 1) (runEval5c Map.empty 0 $ eval5c (Lit 18))
+
+  testEval5cVarUndefined :: Test
+  testEval5cVarUndefined = 
+      TestCase $ assertEqual "eval5c should fail on non-existing vars and write about it"
+        (Nothing, 1)
+        (runEval5c two_vars_env 0 (eval5c (Var "zzzz")))
+
+  testEval5cVarXxxx :: Test
+  testEval5cVarXxxx = 
+      TestCase $ assertEqual "eval5c should lookup a Var and write about it"
+        (Just (IntVal 123), 1) 
+        (runEval5c two_vars_env 0 (eval5c watIsXxxx))
+
+  testEval5cSimpleApp :: Test
+  testEval5cSimpleApp = 
+      TestCase $ assertEqual "eval5c should make a simple application"
+                             (Just (IntVal 18), 8) (runEval5c Map.empty 0 $ eval5c sample)
+
+  testEval5cComplexApp :: Test
+  testEval5cComplexApp = 
+      TestCase $ assertEqual "eval5c should make a complex application"
+                             (Just (IntVal 127), 9) (runEval5c two_vars_env 0 $ eval5c samplone)
+
+  testEval5cCurriedApp :: Test
+  testEval5cCurriedApp = 
+      TestCase $ assertEqual "eval5c should make a partial application"
+                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), 4) 
+                             (runEval5c Map.empty 0 $ eval5c (App lambdona (Lit 4)))
+
+  testEval5cCurriedApp2 :: Test
+  testEval5cCurriedApp2 = 
+      TestCase $ assertEqual "eval5c should spit Nothing in case of errors"
+                             (Nothing, 3) 
+                             (runEval5c Map.empty 0 $ eval5c (App lambdona (Var "inesistente")))
+
+  testEval5cWatIsXPlusY :: Test
+  testEval5cWatIsXPlusY = 
+      TestCase $ assertEqual "eval5c should sum two vars"
+                             (Just (IntVal 357), 3) (runEval5c two_vars_env 0 $ eval5c xPlusY)
+
+  testEval5cWatIsXPlusCrash :: Test
+  testEval5cWatIsXPlusCrash = 
+      TestCase $ assertEqual "eval5c should fail summing stuff when one ain't IntVal"
+                             (Nothing, 3) (runEval5c Map.empty 0 $ eval5c (Plus (Lit 123) lambdina))
+{--}
+------------- ET + RT -----------------
 
   testEval5bLiteral :: Test
   testEval5bLiteral = 
@@ -73,6 +125,7 @@ module TestNilsson_03 where
       TestCase $ assertEqual "eval5b should fail summing stuff when one ain't IntVal"
                              (Nothing) (runEval5b Map.empty $ eval5b (Plus (Lit 123) lambdina))
 {--}
+------------- RT + ET -----------------
 
   testEval5Literal :: Test
   testEval5Literal = 
@@ -145,5 +198,14 @@ module TestNilsson_03 where
                                 testEval5bCurriedApp,
                                 testEval5bCurriedApp2,
                                 testEval5bWatIsXPlusY,
-                                testEval5bWatIsXPlusCrash
+                                testEval5bWatIsXPlusCrash,
+                                testEval5cLiteral,
+                                testEval5cVarUndefined,
+                                testEval5cVarXxxx,
+                                testEval5cSimpleApp,
+                                testEval5cComplexApp,
+                                testEval5cCurriedApp,
+                                testEval5cCurriedApp2,
+                                testEval5cWatIsXPlusY,
+                                testEval5cWatIsXPlusCrash
                               ]

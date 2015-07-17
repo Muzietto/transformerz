@@ -126,6 +126,41 @@ module Nilsson_03 where -- ReaderT
   {-
     -}
 ------------- RT + ET + ST -----------------
+
+  type Eval5c a = RT Env (ET (ST Int I)) a
+            --  = RT (Env -> ET (ST Int I) a)
+            --  = RT (Env -> ET (ST Int I) (Maybe a))
+            --  = RT (Env -> ET (ST (Int -> I (Maybe a, Int))))
+  
+  runEval5c :: Env -> Int -> Eval5c a -> (Maybe a, Int)
+  runEval5c env s rtenvetstinticmaybeaint = unI (unST (unET (unRT rtenvetstinticmaybeaint env)) s)
+  
+  eval5c :: Exp -> Eval5c Value
+  eval5c (Lit i) = do lift $ lift tick
+                      return $ IntVal i
+  eval5c (Var name) = do lift $ lift tick
+                         env <- ask
+                         case (Map.lookup name env) of
+                           Just val -> return val
+                           Nothing -> lift eFail
+  eval5c (Plus e1 e2) = do lift $ lift tick
+                           v1 <- eval5c e1
+                           v2 <- eval5c e2
+                           case (v1,v2) of
+                             (IntVal i1, IntVal i2) -> return $ IntVal $ i1 + i2
+                             _ -> lift eFail
+  eval5c (Lambda argname body) = do lift $ lift tick
+                                    env <- ask
+                                    return $ FunVal argname body env
+  eval5c (App lambda exp) =
+        do lift $ lift tick
+           funval <- eval5c lambda
+           val <- eval5c exp
+           case funval of
+             FunVal argname body env' -> 
+                  do local (const $ Map.insert argname val env') (eval5c body)
+             _ -> lift eFail
+  
   
   --
 
