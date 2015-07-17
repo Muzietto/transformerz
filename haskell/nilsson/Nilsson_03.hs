@@ -46,29 +46,54 @@ module Nilsson_03 where -- ReaderT
 
   instance (Monad m) => R r (RT r m) where
     ask :: (RT r m) r
-    --ask = RT (\x -> x) r -- my attempt
-    ask = RT return -- from hackage
+  --ask = RT (\x -> x) r -- my attempt
+    ask = RT return -- from hackage - why without DOT???
 
     local :: (r -> r) -- ^ The function to modify the environment
-        -> (RT r m) a -- ^ Computation to run in the modified the environment
-        -> (RT r m) a
+             -> (RT r m) a -- ^ Computation to run in the modified the environment
+             -> (RT r m) a
     local f m = RT $ unRT m . f
-    -- local modifier rtrma = RT $ do env <- ask -- my attempt
-       --                           return $
+ -- local modifier rtrma = RT $ do env <- ask -- my attempt
+      --                           return $
 
-                                  {-
-  instance (Monoid w, Monad m) => MonadTransformer (WT w) m where
+  instance (Monad m) => MonadTransformer (RT r) m where
     -- lift :: m a -> t m a
-    -- lift :: m a -> WT w m a = WT (m (a, w))
-    lift ma = WT $ do a <- ma
-                      return (a, mempty)
+    -- lift :: m a -> RT r m a = RT (r -> m a))
+  --lift ma = RT $ \_ -> ma
+    lift = RT . const
+    
+------------- RT + ET -----------------
 
-------------- ET + WT -----------------
-
+  type Eval5 a = RT Env (ET I) a
+            --  = RT (Env -> ET I (Maybe a)
   
-  -}
+  runEval5 :: Env -> Eval5 a -> Maybe a
+  runEval5 env rtenvetimaybev = unI $ unET $ unRT rtenvetimaybev env
   
+  eval5 :: Exp -> Eval5 Value
+  eval5 (Lit i) = return $ IntVal i
+  eval5 (Var name) = do env <- ask
+                        case (Map.lookup name env) of
+                          Just val -> return val
+                          Nothing -> lift eFail
+  eval5 (Plus e1 e2) = do v1 <- eval5 e1
+                          v2 <- eval5 e2
+                          case (v1,v2) of
+                            (IntVal i1, IntVal i2) -> return $ IntVal $ i1 + i2
+                            _ -> lift eFail
+  eval5 (Lambda argname body) = do env <- ask
+                                   return $ FunVal argname body env
+  eval5 (App lambda exp) =
+        do funval <- eval5 lambda
+           val <- eval5 exp
+           case funval of
+             FunVal argname body env' -> 
+                  do local (const $ Map.insert argname val env') (eval5 body)
+             _ -> lift eFail
   
---
+    
+------------- RT + ET + ST -----------------
+  
+  --
 
 
