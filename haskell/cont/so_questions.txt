@@ -1,0 +1,23 @@
+Trying to exercise with the Cont monad. Syntax issue.
+
+After some study ([1], [2], [3] among others) I am trying to make work of the continuation monad by attempting some examples on my own. I present here a few issues.
+
+The second answer to [1] suggests to express the factorial using continuations. My solution is the following:
+
+    Cont ($ (fact 0)) = return 1
+    Cont ($ (fact n)) = Cont ($ (fact (n-1))) >>= (\x -> Cont ($ (n*x)))
+
+I've done some simulations on paper and the solution should be correct.
+
+However I am unable to have it digested by GHC. Of course I renamed the 'fact' function, but still no joy.
+
+My latest attempt is https://gist.github.com/Muzietto/595bef1815ddf375129d
+and gives "parse error in pattern \c -> ....."
+
+Can anyone suggest a running implementation for these definitions?
+
+
+[1] http://stackoverflow.com/questions/3322540/how-and-why-does-the-haskell-cont-monad-work
+[2] http://hackage.haskell.org/package/mtl-1.1.0.2/docs/Control-Monad-Cont.html
+[3] https://wiki.haskell.org/MonadCont_under_the_hood
+
