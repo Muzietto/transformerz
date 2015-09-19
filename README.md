@@ -1,5 +1,7 @@
 # transformerz
 
+![alt image](/img/transformers.png)
+
 Monad transformers in Haskell from the ground up. Nothing imported, just code.
 
 Current development is in directory haskell/nilsson. Tests are provided, using hunit.
