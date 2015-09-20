@@ -15,5 +15,3 @@ I believe that, in order to understand this complicated matter, it's better to s
 [1] http://www.cs.virginia.edu/~wh5a/personal/Transformers.pdf
 
 [2] http://www.cs.nott.ac.uk/~nhn/MGS2006/LectureNotes/lecture03-9up.pdf
-
-[3] http://blog.sigfpe.com/2006/05/grok-haskell-monad-transformers.html
