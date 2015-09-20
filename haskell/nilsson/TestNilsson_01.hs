@@ -21,66 +21,60 @@ module TestNilsson_01 where
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
+  testEval0WatIsXxxx :: Test
+  testEval0WatIsXxxx = 
+      TestCase $ assertEqual "eval0 should lookup a var"
+                             (IntVal 123) (eval0 two_vars_env watIsXxxx)
 
-  testEval3SimpleApp :: Test
-  testEval3SimpleApp = 
-      TestCase $ assertEqual "eval3 should make a simple application"
-                             (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sample)
+  testEval0WatIsXPlusY :: Test
+  testEval0WatIsXPlusY = 
+      TestCase $ assertEqual "eval0 should sum two vars"
+                             (IntVal 357) (eval0 two_vars_env xPlusY)
 
-  testEval3ComplexApp :: Test
-  testEval3ComplexApp = 
-      TestCase $ assertEqual "eval3 should make a complex application"
-                             (Just (IntVal 127), 9) (runEval3 0 $ eval3 two_vars_env samplone)
+  testEval0SimpleApp :: Test
+  testEval0SimpleApp = 
+      TestCase $ assertEqual "eval0 should make a simple application"
+                             (IntVal 18) (eval0 Map.empty sample)
 
-  testEval3CurriedApp :: Test
-  testEval3CurriedApp = 
-      TestCase $ assertEqual "eval3 should make a partial application"
-                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), 4) 
-                             (runEval3 0 $ eval3 Map.empty (App lambdona (Lit 4)))
+  testEval0ComplexApp :: Test
+  testEval0ComplexApp = 
+      TestCase $ assertEqual "eval0 should make a complex application"
+                             (IntVal 127) (eval0 two_vars_env samplone)
 
-  testEval3CurriedApp2 :: Test
-  testEval3CurriedApp2 = 
-      TestCase $ assertEqual "eval3 should spit Nothing in case of errors"
-                             (Nothing, 3) 
-                             (runEval3 0 $ eval3 Map.empty (App lambdona (Var "inesistente")))
+  testEval0CurriedApp :: Test
+  testEval0CurriedApp = 
+      TestCase $ assertEqual "eval0 should make a partial application"
+                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
+                             (eval0 Map.empty (App lambdona (Lit 4)))
 
-  testEval3WatIsXPlusY :: Test
-  testEval3WatIsXPlusY = 
-      TestCase $ assertEqual "eval3 should sum two vars"
-                             (Just (IntVal 357), 3) (runEval3 0 $ eval3 two_vars_env xPlusY)
+----------------------------
 
-  testEval3WatIsXPlusCrash :: Test
-  testEval3WatIsXPlusCrash = 
-      TestCase $ assertEqual "eval3 should fail summing stuff when one ain't IntVal"
-                             (Nothing, 3) (runEval3 0 $ eval3 Map.empty (Plus (Lit 123) lambdina))
+  testEval1WatIsXxxx :: Test
+  testEval1WatIsXxxx = 
+      TestCase $ assertEqual "eval1 should lookup a var"
+                             (I (IntVal 123)) (eval1 two_vars_env watIsXxxx)
 
-  testEval3VarUndefined :: Test
-  testEval3VarUndefined = 
-      TestCase $ assertEqual "eval3 should fail on non-existing vars and update state"
-        (Nothing, 1) 
-        (runEval3 0 (eval3 two_vars_env (Var "zzzz")))
+  testEval1WatIsXPlusY :: Test
+  testEval1WatIsXPlusY = 
+      TestCase $ assertEqual "eval1 should sum two vars"
+                             (IntVal 357) (unI $ eval1 two_vars_env xPlusY)
 
-  testEval3VarXxxx :: Test
-  testEval3VarXxxx = 
-      TestCase $ assertEqual "eval3 should lookup a Var and update state"
-        (Just (IntVal 123), 1) 
-        (runEval3 0 (eval3 two_vars_env watIsXxxx))
+  testEval1SimpleApp :: Test
+  testEval1SimpleApp = 
+      TestCase $ assertEqual "eval1 should make a simple application"
+                             (IntVal 18) (runEval1 $ eval1 Map.empty sample)
 
----------------------------------------
+  testEval1ComplexApp :: Test
+  testEval1ComplexApp = 
+      TestCase $ assertEqual "eval1 should make a complex application"
+                             (IntVal 127) (runEval1 $ eval1 two_vars_env samplone)
 
-  testEval3Lit123a :: Test
-  testEval3Lit123a = 
-      TestCase $ assertEqual "eval3 should return a ET(ST) and update state"
-        (I (Just (IntVal 123), 1)) 
-        (unST (unET $ eval3 Map.empty (Lit 123)) 0)
-
-  testEval3Lit123b :: Test
-  testEval3Lit123b = 
-      TestCase $ assertEqual "eval3 should evaluate a Literal and update state"
-        (Just (IntVal 123), 1) 
-        (runEval3 0 (eval3 Map.empty (Lit 123)))
-
----------------------------------------
+  testEval1CurriedApp :: Test
+  testEval1CurriedApp = 
+      TestCase $ assertEqual "eval1 should make a partial application"
+                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
+                             (runEval1 $ eval1 Map.empty (App lambdona (Lit 4)))
+-----------------------------------------
   testEval2WatIsXxxx :: Test
   testEval2WatIsXxxx = 
       TestCase $ assertEqual "eval2 should lookup a var"
@@ -125,58 +119,63 @@ module TestNilsson_01 where
 {--}
 -----------------------------------------
 
-  testEval1WatIsXxxx :: Test
-  testEval1WatIsXxxx = 
-      TestCase $ assertEqual "eval1 should lookup a var"
-                             (I (IntVal 123)) (eval1 two_vars_env watIsXxxx)
+  testEval3Lit123a :: Test
+  testEval3Lit123a = 
+      TestCase $ assertEqual "eval3 should return a ET(ST) and update state"
+        (I (Just (IntVal 123), 1)) 
+        (unST (unET $ eval3 Map.empty (Lit 123)) 0)
 
-  testEval1WatIsXPlusY :: Test
-  testEval1WatIsXPlusY = 
-      TestCase $ assertEqual "eval1 should sum two vars"
-                             (IntVal 357) (unI $ eval1 two_vars_env xPlusY)
+  testEval3Lit123b :: Test
+  testEval3Lit123b = 
+      TestCase $ assertEqual "eval3 should evaluate a Literal and update state"
+        (Just (IntVal 123), 1) 
+        (runEval3 0 (eval3 Map.empty (Lit 123)))
 
-  testEval1SimpleApp :: Test
-  testEval1SimpleApp = 
-      TestCase $ assertEqual "eval1 should make a simple application"
-                             (IntVal 18) (runEval1 $ eval1 Map.empty sample)
+  testEval3VarXxxx :: Test
+  testEval3VarXxxx = 
+      TestCase $ assertEqual "eval3 should lookup a Var and update state"
+        (Just (IntVal 123), 1) 
+        (runEval3 0 (eval3 two_vars_env watIsXxxx))
 
-  testEval1ComplexApp :: Test
-  testEval1ComplexApp = 
-      TestCase $ assertEqual "eval1 should make a complex application"
-                             (IntVal 127) (runEval1 $ eval1 two_vars_env samplone)
+  testEval3VarUndefined :: Test
+  testEval3VarUndefined = 
+      TestCase $ assertEqual "eval3 should fail on non-existing vars and update state"
+        (Nothing, 1) 
+        (runEval3 0 (eval3 two_vars_env (Var "zzzz")))
 
-  testEval1CurriedApp :: Test
-  testEval1CurriedApp = 
-      TestCase $ assertEqual "eval1 should make a partial application"
-                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
-                             (runEval1 $ eval1 Map.empty (App lambdona (Lit 4)))
------------------------------------------
+  testEval3WatIsXPlusY :: Test
+  testEval3WatIsXPlusY = 
+      TestCase $ assertEqual "eval3 should sum two vars"
+                             (Just (IntVal 357), 3) (runEval3 0 $ eval3 two_vars_env xPlusY)
 
-  testEval0WatIsXxxx :: Test
-  testEval0WatIsXxxx = 
-      TestCase $ assertEqual "eval0 should lookup a var"
-                             (IntVal 123) (eval0 two_vars_env watIsXxxx)
+  testEval3WatIsXPlusCrash :: Test
+  testEval3WatIsXPlusCrash = 
+      TestCase $ assertEqual "eval3 should fail summing stuff when one ain't IntVal"
+                             (Nothing, 3) (runEval3 0 $ eval3 Map.empty (Plus (Lit 123) lambdina))
 
-  testEval0WatIsXPlusY :: Test
-  testEval0WatIsXPlusY = 
-      TestCase $ assertEqual "eval0 should sum two vars"
-                             (IntVal 357) (eval0 two_vars_env xPlusY)
+  testEval3SimpleApp :: Test
+  testEval3SimpleApp = 
+      TestCase $ assertEqual "eval3 should make a simple application"
+                             (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sample)
 
-  testEval0SimpleApp :: Test
-  testEval0SimpleApp = 
-      TestCase $ assertEqual "eval0 should make a simple application"
-                             (IntVal 18) (eval0 Map.empty sample)
+  testEval3ComplexApp :: Test
+  testEval3ComplexApp = 
+      TestCase $ assertEqual "eval3 should make a complex application"
+                             (Just (IntVal 127), 9) (runEval3 0 $ eval3 two_vars_env samplone)
 
-  testEval0ComplexApp :: Test
-  testEval0ComplexApp = 
-      TestCase $ assertEqual "eval0 should make a complex application"
-                             (IntVal 127) (eval0 two_vars_env samplone)
+  testEval3CurriedApp :: Test
+  testEval3CurriedApp = 
+      TestCase $ assertEqual "eval3 should make a partial application"
+                             (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])), 4) 
+                             (runEval3 0 $ eval3 Map.empty (App lambdona (Lit 4)))
 
-  testEval0CurriedApp :: Test
-  testEval0CurriedApp = 
-      TestCase $ assertEqual "eval0 should make a partial application"
-                             (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])) 
-                             (eval0 Map.empty (App lambdona (Lit 4)))
+  testEval3CurriedApp2 :: Test
+  testEval3CurriedApp2 = 
+      TestCase $ assertEqual "eval3 should spit Nothing in case of errors"
+                             (Nothing, 3) 
+                             (runEval3 0 $ eval3 Map.empty (App lambdona (Var "inesistente")))
+
+---------------------------------------
 
   main :: IO Counts
   main = runTestTT $ TestList [
