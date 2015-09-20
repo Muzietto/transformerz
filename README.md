@@ -12,6 +12,8 @@ Why's that? The `mtl` library features transformers which implement a lot of eac
 
 I believe that, in order to understand this complicated matter, it's better to start by keeping the various layers clearly separated and use `lift` consciously whenever we need one or another operation.
 
+This project is presented at [Understanding monad transformers: mastery is in the details](https://faustinelli.wordpress.com/2015/09/20/understanding-monad-transformers-mastery-is-in-the-details/)
+
 [1] http://www.cs.virginia.edu/~wh5a/personal/Transformers.pdf
 
 [2] http://www.cs.nott.ac.uk/~nhn/MGS2006/LectureNotes/lecture03-9up.pdf
