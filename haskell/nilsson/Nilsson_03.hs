@@ -107,7 +107,7 @@ module Nilsson_03 where -- ReaderT
 
   type Eval5b a = ET (RT Env I) a
             -- = ET (RT Env I) (Maybe a)
-            -- = ET (RT (Env -> I (Maybe a))
+            -- = ET (RT (Env -> I (Maybe a)))
   
   runEval5b :: Env -> Eval5b a -> Maybe a
   runEval5b env etrtenvimaybea = unI $ unRT (unET etrtenvimaybea) env
