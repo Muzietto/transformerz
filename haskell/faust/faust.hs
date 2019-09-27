@@ -3,13 +3,12 @@
 import Data.Maybe
 import qualified Data.Map as Map
 import Control.Monad.Identity
+import Control.Monad.Trans.Maybe
 --import Control.Applicative
 --import Text.Show.Functions
 
 main :: IO ()
 main = putStrLn "ciao"
-
---newtype MT1 m a = MT1 { runMT1 :: m (Maybe a) }
 
 --newtype MT m a = MT (m (Maybe a))
 
@@ -56,3 +55,23 @@ eval1 env (Lambda argname body) = return $ FunVal argname body env
 eval1 env (App e1 e2) = let Lambda argname body = e1
                             envPlus = Map.insert argname (runIdentity (eval1 env e2)) env
                         in eval1 envPlus body
+
+--newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
+eval2 :: Env -> Exp -> MaybeT Identity Value
+eval2 _ (Lit i) = return (IntVal i)
+eval2 env (Var name) = case (Map.lookup name env) of
+                           -- Just val -> return val -- MaybeT
+                           Just val -> MaybeT $ Identity $ Just val
+                           Nothing -> MaybeT (return Nothing) -- Identity
+eval2 env (Plus e1 e2) = do
+                            v1 <- eval2 env e1
+                            v2 <- eval2 env e2
+                            case (v1, v2) of
+                                (IntVal i1, IntVal i2) -> return $ IntVal (i1 + i2)
+                                _ -> MaybeT $ return Nothing
+-- eval2 env (Lambda argname body) = return $ FunVal argname body env
+-- eval2 env (App e1 e2) = let Lambda argname body = e1
+--                         in do
+--                             e2Value <- eval2 env e2
+--                             let envPlus = Map.insert argname e2Value env
+--                             return $ eval2 envPlus body
