@@ -16,7 +16,7 @@ module Nilsson_01 where
   import qualified Data.Map as Map
   import Control.Applicative
   import Text.Show.Functions
-  
+
 
   class (Monad m, Monad (t m)) => MonadTransformer t m where
     lift :: m a -> t m a
@@ -32,7 +32,7 @@ module Nilsson_01 where
              | FunVal Name Exp Env
              deriving (Show, Read, Eq)
   type Env = Map.Map Name Value
-  
+
   ----------------------------------------------------------------------
   eval0 :: Env -> Exp -> Value
   eval0 env (Lit i) = IntVal i
@@ -62,7 +62,7 @@ module Nilsson_01 where
   -- run the monad
   runI :: I a -> a
   runI = unI
-  
+
   instance Monad I where
     return = I
     ia >>= faib = faib (unI ia)
@@ -72,7 +72,7 @@ module Nilsson_01 where
     ifab <*> ia = I (unI ifab (unI ia))
   instance Functor I where
     fmap fab ia = I (fab (unI ia))
-    
+
   -----------------------------------------------------------------------
   runEval1 :: I Value -> Value
   runEval1 = unI
@@ -105,7 +105,7 @@ module Nilsson_01 where
   -- run the OUTER monad (this is actually NOT a runner)
   runET :: Monad m => ET m a -> m a
   runET etma = do ma <- unET etma
-                  case ma of 
+                  case ma of
                     Just a -> return a
   --                Nothing -> crash!
 
@@ -146,7 +146,7 @@ module Nilsson_01 where
     -- m a -> t m a
     -- lift :: m a -> ET m a = ET m (Maybe a)
     lift ma = ET $ do a <- ma -- ET $ ma >>= \a -> return (Just a)
-                      return (Just a) 
+                      return (Just a)
 
   ------------------------------------------------------------------------
   runEval2 :: ET I Value -> Maybe Value -- ErrorT => Either String Value
@@ -173,7 +173,7 @@ module Nilsson_01 where
   newtype ST s m a = ST (s -> m (a, s))
   deriving instance Show (s -> m (a, s)) => Show (ST s m a)
   deriving instance Eq (s -> m (a, s)) => Eq (ST s m a)
-  
+
   -- unwrap the OUTER monad, i.e. resolve its type (this is actually a RUNNER!!!)
   unST :: (Monad m) => ST s m a -> s -> m (a, s)
   unST (ST m) = m -- runStateT in mtl!
@@ -193,7 +193,7 @@ module Nilsson_01 where
     -- af (a -> b) <*> af a -> af b
     stsmfab <*> stsma = ST $ \s -> do (fab, sfab) <- unST stsmfab s
                                       (a, sa) <- unST stsma s
-                                      return (fab a, sa) 
+                                      return (fab a, sa)
 
   instance (Functor m, Monad m) => Functor (ST s m) where
     fmap fab stsma = ST $ \s -> do (a, sa) <- unST stsma s
@@ -237,7 +237,7 @@ module Nilsson_01 where
   {-
     eHandle trystsma catchstsma = ST $ \s -> do tryas <- unST trystsma s -- running in m => tryas :: (a, s)
                                                 catchas <- unST catchstsma s
-                                                eHandle (return tryas) (return catchas) -- eHandle di m 
+                                                eHandle (return tryas) (return catchas) -- eHandle di m
   -}
     eHandle trystsma catchstsma = ST $ \s -> eHandle (unST trystsma s) (unST catchstsma s) -- eHandle di m
   -- eHandle_di_m :: m a -> m a -> m a
@@ -248,16 +248,16 @@ module Nilsson_01 where
 
   runEval3 :: Int -> Eval3 Int Value -> (Maybe Value, Int)
   runEval3 s etstsintiv = unI $ unST (unET etstsintiv) s
-  
+
   -- tick :: (Num s, S ms s, Monad m) => ms s m s
   tick :: ST Int I Int
   tick = ST $ \n -> I (n, n+1)
-  
+
   eval3 :: Env -> Exp -> Eval3 Int Value
   eval3 env (Lit i)      = do (lift tick)
                               return $ IntVal i
   eval3 env (Var name)   = do (lift tick)
-                              ET $ return $ Map.lookup name env  
+                              ET $ return $ Map.lookup name env
   eval3 env (Plus e1 e2) = do (lift tick)
                               v1 <- eval3 env e1
                               v2 <- eval3 env e2
@@ -276,7 +276,7 @@ module Nilsson_01 where
             | Lambda Name Exp
             | App Exp Exp
   -}
-  
+
   -- a few acrobatics...
   etstsintiv = eval3 Map.empty (Lit 123)
   stsintimaybev = unET etstsintiv
