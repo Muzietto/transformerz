@@ -41,9 +41,6 @@ eval0 env (App e1 e2) = let Lambda argname body = e1
                         in eval0 envPlus body
 --eval0 env (App (Lambda argname body) expr) = eval0 (Map.insert argname (eval0 env expr) env) body
 
-lambda = Lambda "x" (Plus (Var "x") (Plus (Var "y") (Lit 1)))
-envo = Map.insert "y" (IntVal 123) Map.empty
-
 eval1 :: Env -> Exp -> Identity Value
 eval1 _ (Lit i) = return (IntVal i)
 eval1 env (Var name) = return $ fromJust $ Map.lookup name env
@@ -69,9 +66,11 @@ eval2 env (Plus e1 e2) = do
                             case (v1, v2) of
                                 (IntVal i1, IntVal i2) -> return $ IntVal (i1 + i2)
                                 _ -> MaybeT $ return Nothing
--- eval2 env (Lambda argname body) = return $ FunVal argname body env
--- eval2 env (App e1 e2) = let Lambda argname body = e1
---                         in do
---                             e2Value <- eval2 env e2
---                             let envPlus = Map.insert argname e2Value env
---                             return $ eval2 envPlus body
+eval2 env (Lambda argname body) = return $ FunVal argname body env
+eval2 env (App e1 e2) = let Lambda argname body = e1 -- cannot handle pattern matching error!!
+                        in do
+                               e2Value <- eval2 env e2
+                               eval2 (Map.insert argname e2Value env) body
+
+lambda = Lambda "x" (Plus (Var "x") (Plus (Var "y") (Lit 1)))
+envo = Map.insert "y" (IntVal 123) Map.empty
