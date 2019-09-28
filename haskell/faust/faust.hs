@@ -70,10 +70,13 @@ eval2 env (Plus e1 e2) = do
                                 (IntVal i1, IntVal i2) -> return $ IntVal (i1 + i2)
                                 _ -> MaybeT $ return Nothing
 eval2 env (Lambda argname body) = return $ FunVal argname body env
-eval2 env (App e1 e2) = let Lambda argname body = e1 -- cannot handle pattern matching error!!
-                        in do
-                               e2Value <- eval2 env e2
-                               eval2 (Map.insert argname e2Value env) body
+eval2 env (App lambda expr) = do
+                            v1 <- eval2 env lambda
+                            v2 <- eval2 env expr
+                            case v1 of
+                                FunVal argname body env' -> eval2 (Map.insert argname v2 env') body
+                                _ -> MaybeT (return Nothing)
+
 runEval2 :: MaybeT Identity Value -> Maybe Value -- Identity (Maybe Value)
 -- :t runMaybeT = MaybeT m a -> m (Maybe a)
 -- :t runIdentity = Identity a -> a
