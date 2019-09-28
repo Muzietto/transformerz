@@ -53,6 +53,9 @@ eval1 env (App e1 e2) = let Lambda argname body = e1
                             envPlus = Map.insert argname (runIdentity (eval1 env e2)) env
                         in eval1 envPlus body
 
+runEval1 :: Identity Value -> Value
+runEval1 = runIdentity
+
 --newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 eval2 :: Env -> Exp -> MaybeT Identity Value
 eval2 _ (Lit i) = return (IntVal i)
@@ -71,6 +74,10 @@ eval2 env (App e1 e2) = let Lambda argname body = e1 -- cannot handle pattern ma
                         in do
                                e2Value <- eval2 env e2
                                eval2 (Map.insert argname e2Value env) body
+runEval2 :: MaybeT Identity Value -> Maybe Value -- Identity (Maybe Value)
+-- :t runMaybeT = MaybeT m a -> m (Maybe a)
+-- :t runIdentity = Identity a -> a
+runEval2 = runIdentity . runMaybeT
 
 lambda = Lambda "x" (Plus (Var "x") (Plus (Var "y") (Lit 1)))
 envo = Map.insert "y" (IntVal 123) Map.empty
