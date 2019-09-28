@@ -150,7 +150,7 @@ module Nilsson_01 where
 
   ------------------------------------------------------------------------
   runEval2 :: ET I Value -> Maybe Value -- ErrorT => Either String Value
-  runEval2 etia = unI (unET etia)
+  runEval2 etia = unI (unET etia) -- remember that ET I a = ET (I (Maybe a))
 
   eval2 :: Env -> Exp -> ET I Value -- ET I (Maybe Value)
   eval2 env (Lit i)      = return $ IntVal i
