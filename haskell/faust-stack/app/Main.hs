@@ -1,6 +1,6 @@
 module Main where
 
-import Data.String.Strip
+import Faust.Faust
 
 main :: IO ()
-main = interact strip
+main = undefined

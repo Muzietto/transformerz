@@ -1,16 +1,20 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FunctionalDependencies, StandaloneDeriving, FlexibleContexts, UndecidableInstances, DeriveFunctor #-}
 
-module Data.String.Strip  where
+module Faust.Faust where
 
 import Data.Maybe
 import qualified Data.Map as Map
 import Control.Monad.Identity
 import Control.Monad.Trans.Maybe
+import Control.Monad.Fail
 --import Control.Applicative
 --import Text.Show.Functions
 
-main :: IO ()
-main = putStrLn "ciao"
+instance MonadFail Identity where
+    fail _ = undefined
+
+--main :: IO ()
+--main = putStrLn "ciao"
 
 --newtype MT m a = MT (m (Maybe a))
 
