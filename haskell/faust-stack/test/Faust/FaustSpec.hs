@@ -59,6 +59,11 @@ module Faust.FaustSpec (main, spec) where
         it "should make a complex application" $ do
           eval0 twoVarsEnv samplone `shouldBe` IntVal 127
 
+        it "should make a partial application" $ do
+          eval0 Map.empty (App lambdona (Lit 4)) `shouldBe`
+            -- FunVal name exp env
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
+
       describe "eval1" $ do
         it "should lookup a var" $ do
           eval1 twoVarsEnv watIsXxxx `shouldBe` Identity (IntVal 123)
@@ -78,6 +83,13 @@ module Faust.FaustSpec (main, spec) where
         it "should make a complex application" $ do
           runEval1 (eval1 twoVarsEnv samplone) `shouldBe` IntVal 127
 
+        it "should make a partial application" $ do
+          runEval1 (eval1 Map.empty (App lambdona (Lit 4))) `shouldBe`
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
+
+          --       TestCase $ assertEqual "eval1 should make a partial application"
+          --                              (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))
+          --                              (runEval1 $ eval1 Map.empty (App lambdona (Lit 4)))
 
       describe "eval2" $ do
         it "should make a simple application" $ do
@@ -86,15 +98,6 @@ module Faust.FaustSpec (main, spec) where
         it "should make a complex application" $ do
           runEval2 (eval2 twoVarsEnv samplone) `shouldBe` Just (IntVal 127)
 
-        --   testEval2SimpleApp :: Test
-        --   testEval2SimpleApp =
-        --       TestCase $ assertEqual "eval2 should make a simple application"
-        --                              (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sampletto)
-        --
-        --   testEval2ComplexApp :: Test
-        --   testEval2ComplexApp =
-        --       TestCase $ assertEqual "eval2 should make a complex application"
-        --                              (Just (IntVal 127)) (runEval2 $ eval2 twoVarsEnv samplone)
 
 
        -- it "" $ do
