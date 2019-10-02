@@ -38,26 +38,33 @@ type Env = Map.Map Name Value
 eval0 :: Env -> Exp -> Value
 eval0 _ (Lit i) = IntVal i
 eval0 env (Var name) = fromJust $ Map.lookup name env
-eval0 env (Plus e1 e2) = let IntVal i1 = eval0 env e1
-                             IntVal i2 = eval0 env e2
-                         in IntVal (i1 + i2)
+eval0 env (Plus e1 e2) = let
+    IntVal i1 = eval0 env e1
+    IntVal i2 = eval0 env e2
+  in IntVal (i1 + i2)
 eval0 env (Lambda argname body) = FunVal argname body env
-eval0 env (App e1 e2) = let Lambda argname body = e1
-                            envPlus = Map.insert argname (eval0 env e2) env
-                        in eval0 envPlus body
+eval0 env (App lambda expr) = let
+  v1 = eval0 env lambda
+  v2 = eval0 env expr
+  in case v1 of
+    FunVal argname body env' -> eval0 (Map.insert argname v2 env') body
+    _ -> undefined
 --eval0 env (App (Lambda argname body) expr) = eval0 (Map.insert argname (eval0 env expr) env) body
 
 eval1 :: Env -> Exp -> Identity Value
 eval1 _ (Lit i) = return (IntVal i)
 eval1 env (Var name) = return $ fromJust $ Map.lookup name env
 eval1 env (Plus e1 e2) = do
-                             IntVal i1 <- eval1 env e1
-                             IntVal i2 <- eval1 env e2
-                             return $ IntVal (i1 + i2)
+  IntVal i1 <- eval1 env e1
+  IntVal i2 <- eval1 env e2
+  return $ IntVal (i1 + i2)
 eval1 env (Lambda argname body) = return $ FunVal argname body env
-eval1 env (App e1 e2) = let Lambda argname body = e1
-                            envPlus = Map.insert argname (runIdentity (eval1 env e2)) env
-                        in eval1 envPlus body
+eval1 env (App lambda expr) = do
+  v1 <- eval1 env lambda
+  v2 <- eval1 env expr
+  case v1 of
+    FunVal argname body env' -> eval1 (Map.insert argname v2 env') body
+    _ -> undefined --return Nothing
 
 runEval1 :: Identity Value -> Value
 runEval1 = runIdentity
@@ -66,22 +73,22 @@ runEval1 = runIdentity
 eval2 :: Env -> Exp -> MaybeT Identity Value
 eval2 _ (Lit i) = return (IntVal i)
 eval2 env (Var name) = case (Map.lookup name env) of
-                           -- Just val -> return val -- MaybeT
-                           Just val -> MaybeT $ Identity $ Just val
-                           Nothing -> MaybeT (return Nothing) -- Identity
+  -- Just val -> return val -- MaybeT
+  Just val -> MaybeT $ Identity $ Just val
+  Nothing -> MaybeT (return Nothing) -- Identity
 eval2 env (Plus e1 e2) = do
-                            v1 <- eval2 env e1
-                            v2 <- eval2 env e2
-                            case (v1, v2) of
-                                (IntVal i1, IntVal i2) -> return $ IntVal (i1 + i2)
-                                _ -> MaybeT $ return Nothing
+  v1 <- eval2 env e1
+  v2 <- eval2 env e2
+  case (v1, v2) of
+    (IntVal i1, IntVal i2) -> return $ IntVal (i1 + i2)
+    _ -> MaybeT $ return Nothing
 eval2 env (Lambda argname body) = return $ FunVal argname body env
 eval2 env (App lambda expr) = do
-                            v1 <- eval2 env lambda
-                            v2 <- eval2 env expr
-                            case v1 of
-                                FunVal argname body env' -> eval2 (Map.insert argname v2 env') body
-                                _ -> MaybeT (return Nothing)
+  v1 <- eval2 env lambda
+  v2 <- eval2 env expr
+  case v1 of
+    FunVal argname body env' -> eval2 (Map.insert argname v2 env') body
+    _ -> MaybeT (return Nothing)
 
 runEval2 :: MaybeT Identity Value -> Maybe Value -- Identity (Maybe Value)
 -- :t runMaybeT = MaybeT m a -> m (Maybe a)

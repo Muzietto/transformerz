@@ -34,59 +34,71 @@ module Faust.FaustSpec (main, spec) where
   xPlusY = Plus (Var "xxxx") (Var "yyyy")
   -- \x -> x
   lambdina = Lambda "x" (Var "x")
+  -- \x -> \y -> x + y
   lambdona = Lambda "x" (Lambda "y" (Plus (Var "x") (Var "y")))
   -- 12 + (\x -> x)(4 + 2)
-  sample = Plus (Lit 12) (App lambdina (Plus (Lit 4) (Lit 2))) -- IntVal 18
+  sampletto = Plus (Lit 12) (App lambdina (Plus (Lit 4) (Lit 2))) -- IntVal 18
+  -- (\x -> \y -> x + y) (4) (xxxx)
   samplone = App (App lambdona (Lit 4)) (Var "xxxx") -- IntVal (4 + xxxx)
 ----------------------------
 
 
   spec :: Spec
-  spec =
-    describe "eval0" $
-      it "should lookup a var" $
-        eval0 twoVarsEnv watIsXxxx `shouldBe` IntVal 123
+  spec = do
+    describe "using monad transformers" $ do
+      describe "eval0" $ do
+        it "should lookup a var" $ do
+          eval0 twoVarsEnv watIsXxxx `shouldBe` IntVal 123
 
-      it "should sum two vars" $
-        eval0 twoVarsEnv xPlusY `shouldBe` IntVal 357
+        it "should sum two vars" $ do
+          eval0 twoVarsEnv xPlusY `shouldBe` IntVal 357
 
-  -- testEval0WatIsXPlusY :: Test
-  -- testEval0WatIsXPlusY =
-  --     TestCase $ assertEqual "eval0 should sum two vars"
-  --                            (IntVal 357) (eval0 twoVarsEnv xPlusY)
+        it "should make a simple application" $ do
+          eval0 Map.empty sampletto `shouldBe` IntVal 18
 
---   testEval0SimpleApp :: Test
---   testEval0SimpleApp =
---       TestCase $ assertEqual "eval0 should make a simple application"
---                              (IntVal 18) (eval0 Map.empty sample)
---
---   testEval0ComplexApp :: Test
---   testEval0ComplexApp =
---       TestCase $ assertEqual "eval0 should make a complex application"
---                              (IntVal 127) (eval0 twoVarsEnv samplone)
---
---   testEval0CurriedApp :: Test
---   testEval0CurriedApp =
---       TestCase $ assertEqual "eval0 should make a partial application"
---                              (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))
---                              (eval0 Map.empty (App lambdona (Lit 4)))
---
--- ----------------------------
---
---   testEval1WatIsXxxx :: Test
---   testEval1WatIsXxxx =
---       TestCase $ assertEqual "eval1 should lookup a var"
---                              (Identity (IntVal 123)) (eval1 twoVarsEnv watIsXxxx)
---
---   testEval1WatIsXPlusY :: Test
---   testEval1WatIsXPlusY =
---       TestCase $ assertEqual "eval1 should sum two vars"
---                              (IntVal 357) (runIdentity $ eval1 twoVarsEnv xPlusY)
---
---   testEval1SimpleApp :: Test
---   testEval1SimpleApp =
---       TestCase $ assertEqual "eval1 should make a simple application"
---                              (IntVal 18) (runEval1 $ eval1 Map.empty sample)
+        it "should make a complex application" $ do
+          eval0 twoVarsEnv samplone `shouldBe` IntVal 127
+
+      describe "eval1" $ do
+        it "should lookup a var" $ do
+          eval1 twoVarsEnv watIsXxxx `shouldBe` Identity (IntVal 123)
+
+        it "should lookup another var" $ do
+          eval1 twoVarsEnv (Var "yyyy") `shouldBe` Identity (IntVal 234)
+
+        it "should sum two vars" $ do
+          eval1 twoVarsEnv xPlusY `shouldBe` Identity (IntVal 357)
+
+        it "should sum three vars" $ do
+          eval1 twoVarsEnv (Plus (Var "xxxx") xPlusY) `shouldBe` Identity (IntVal 480)
+
+        it "should make a simple application" $ do
+          runEval1 (eval1 Map.empty sampletto) `shouldBe` IntVal 18
+
+        it "should make a complex application" $ do
+          runEval1 (eval1 twoVarsEnv samplone) `shouldBe` IntVal 127
+
+
+      describe "eval2" $ do
+        it "should make a simple application" $ do
+          runEval2 (eval2 Map.empty sampletto) `shouldBe` Just (IntVal 18)
+
+        it "should make a complex application" $ do
+          runEval2 (eval2 twoVarsEnv samplone) `shouldBe` Just (IntVal 127)
+
+        --   testEval2SimpleApp :: Test
+        --   testEval2SimpleApp =
+        --       TestCase $ assertEqual "eval2 should make a simple application"
+        --                              (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sampletto)
+        --
+        --   testEval2ComplexApp :: Test
+        --   testEval2ComplexApp =
+        --       TestCase $ assertEqual "eval2 should make a complex application"
+        --                              (Just (IntVal 127)) (runEval2 $ eval2 twoVarsEnv samplone)
+
+
+       -- it "" $ do
+       --    `shouldBe`
 --
 --   testEval1ComplexApp :: Test
 --   testEval1ComplexApp =
@@ -122,7 +134,7 @@ module Faust.FaustSpec (main, spec) where
 --   testEval2SimpleApp :: Test
 --   testEval2SimpleApp =
 --       TestCase $ assertEqual "eval2 should make a simple application"
---                              (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sample)
+--                              (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sampletto)
 --
 --   testEval2ComplexApp :: Test
 --   testEval2ComplexApp =
@@ -180,7 +192,7 @@ module Faust.FaustSpec (main, spec) where
   -- testEval3SimpleApp :: Test
   -- testEval3SimpleApp =
   --     TestCase $ assertEqual "eval3 should make a simple application"
-  --                            (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sample)
+  --                            (Just (IntVal 18), 8) (runEval3 0 $ eval3 Map.empty sampletto)
   --
   -- testEval3ComplexApp :: Test
   -- testEval3ComplexApp =
