@@ -64,7 +64,7 @@ eval1 env (App lambda expr) = do
   v2 <- eval1 env expr
   case v1 of
     FunVal argname body env' -> eval1 (Map.insert argname v2 env') body
-    _ -> undefined --return Nothing
+    _ -> undefined
 
 runEval1 :: Identity Value -> Value
 runEval1 = runIdentity
