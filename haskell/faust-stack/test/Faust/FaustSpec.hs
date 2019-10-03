@@ -22,6 +22,7 @@ module Faust.FaustSpec (main, spec) where
   import Control.Monad.Identity
   import Control.Monad.Trans.Maybe
   import Control.Monad.Fail
+  import System.IO.Unsafe
 
   main :: IO ()
   main = hspec spec
@@ -64,7 +65,7 @@ module Faust.FaustSpec (main, spec) where
             -- FunVal name exp env
             FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
 
-      describe "eval1" $ do
+      describe "eval1 (using Identity at the core)" $ do
         it "should lookup a var" $ do
           eval1 twoVarsEnv watIsXxxx `shouldBe` Identity (IntVal 123)
 
@@ -87,9 +88,28 @@ module Faust.FaustSpec (main, spec) where
           runEval1 (eval1 Map.empty (App lambdona (Lit 4))) `shouldBe`
             FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
 
-          --       TestCase $ assertEqual "eval1 should make a partial application"
-          --                              (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))
-          --                              (runEval1 $ eval1 Map.empty (App lambdona (Lit 4)))
+      describe "eval1b (using IO at the core)" $ do
+        it "should lookup a var" $ do
+          eval1b twoVarsEnv watIsXxxx `shouldBe` (IntVal 123)
+
+        -- it "should lookup another var" $ do
+        --   eval1b twoVarsEnv (Var "yyyy") `shouldBe` unsafePerformIO (IntVal 234)
+        --
+        -- it "should sum two vars" $ do
+        --   eval1b twoVarsEnv xPlusY `shouldBe` unsafePerformIO (IntVal 357)
+        --
+        -- it "should sum three vars" $ do
+        --   eval1b twoVarsEnv (Plus (Var "xxxx") xPlusY) `shouldBe` unsafePerformIO (IntVal 480)
+        --
+        -- it "should make a simple application" $ do
+        --   unsafePerformIO (eval1b Map.empty sampletto) `shouldBe` IntVal 18
+        --
+        -- it "should make a complex application" $ do
+        --   unsafePerformIO (eval1b twoVarsEnv samplone) `shouldBe` IntVal 127
+        --
+        -- it "should make a partial application" $ do
+        --   runIO (eval1b Map.empty (App lambdona (Lit 4))) `shouldBe`
+        --     FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
 
       describe "eval2" $ do
         it "should make a simple application" $ do
@@ -98,22 +118,9 @@ module Faust.FaustSpec (main, spec) where
         it "should make a complex application" $ do
           runEval2 (eval2 twoVarsEnv samplone) `shouldBe` Just (IntVal 127)
 
-
-
        -- it "" $ do
        --    `shouldBe`
---
---   testEval1ComplexApp :: Test
---   testEval1ComplexApp =
---       TestCase $ assertEqual "eval1 should make a complex application"
---                              (IntVal 127) (runEval1 $ eval1 twoVarsEnv samplone)
---
---   testEval1CurriedApp :: Test
---   testEval1CurriedApp =
---       TestCase $ assertEqual "eval1 should make a partial application"
---                              (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))
---                              (runEval1 $ eval1 Map.empty (App lambdona (Lit 4)))
--- -----------------------------------------
+
 --   testEval2WatIsXxxx :: Test
 --   testEval2WatIsXxxx =
 --       TestCase $ assertEqual "eval2 should lookup a var"

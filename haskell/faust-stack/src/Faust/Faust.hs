@@ -7,6 +7,8 @@ import qualified Data.Map as Map
 import Control.Monad.Identity
 import Control.Monad.Trans.Maybe
 import Control.Monad.Fail
+import System.IO.Unsafe
+
 --import Control.Applicative
 --import Text.Show.Functions
 
@@ -69,10 +71,28 @@ eval1 env (App lambda expr) = do
 runEval1 :: Identity Value -> Value
 runEval1 = runIdentity
 
+eval1b :: Env -> Exp -> IO Value
+eval1b _ (Lit i) = return (IntVal i)
+eval1b env (Var name) = return $ fromJust $ Map.lookup name env
+eval1b env (Plus e1 e2) = do
+  IntVal i1 <- eval1b env e1
+  IntVal i2 <- eval1b env e2
+  return $ IntVal (i1 + i2)
+eval1b env (Lambda argname body) = return $ FunVal argname body env
+eval1b env (App lambda expr) = do
+  v1 <- eval1b env lambda
+  v2 <- eval1b env expr
+  case v1 of
+    FunVal argname body env' -> eval1b (Map.insert argname v2 env') body
+    _ -> undefined
+
+-- runEval1b :: IO Value -> Value
+-- runEval1b = unsafePerformIO
+
 --newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 eval2 :: Env -> Exp -> MaybeT Identity Value
 eval2 _ (Lit i) = return (IntVal i)
-eval2 env (Var name) = case (Map.lookup name env) of
+eval2 env (Var name) = case Map.lookup name env of
   -- Just val -> return val -- MaybeT
   Just val -> MaybeT $ Identity $ Just val
   Nothing -> MaybeT (return Nothing) -- Identity
