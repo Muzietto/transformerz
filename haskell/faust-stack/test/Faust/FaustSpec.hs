@@ -23,6 +23,7 @@ module Faust.FaustSpec (main, spec) where
   import Control.Monad.Trans.Maybe
   import Control.Monad.Fail
   import System.IO.Unsafe
+  import Data.Functor ((<&>))
 
   main :: IO ()
   main = hspec spec
@@ -90,7 +91,8 @@ module Faust.FaustSpec (main, spec) where
 
       describe "eval1b (using IO at the core)" $ do
         it "should lookup a var" $ do
-          eval1b twoVarsEnv watIsXxxx `shouldBe` (IntVal 123)
+        --  (eval1b twoVarsEnv watIsXxxx) >>= \x -> shouldBe x (IntVal 123)
+            eval1b twoVarsEnv watIsXxxx `shouldReturn` IntVal 123
 
         -- it "should lookup another var" $ do
         --   eval1b twoVarsEnv (Var "yyyy") `shouldBe` unsafePerformIO (IntVal 234)
