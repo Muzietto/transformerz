@@ -164,3 +164,16 @@ module Faust.FaustSpec (main, spec) where
 
         it "should fail applying anything that ain't a FunVal" $
           eval2 Map.empty (App (Lit 123) (Lit 234)) `shouldBe` MaybeT (Identity (Nothing))
+
+      describe "eval5, using ReaderT Identity" $ do
+        it "should evaluate a Lit and return it as an Identity" $ do
+          runReaderT (eval5 (Lit 123)) Map.empty `shouldBe` Identity (IntVal 123)
+
+        it "should evaluate a Lit and return it as a Value thanks to runEval5" $ do
+          runEval5 Map.empty (eval5 (Lit 123)) `shouldBe` (IntVal 123)
+
+        -- it "should lookup another var" $ do
+        --   eval5 twoVarsEnv (Var "yyyy") `shouldReturn` IntVal 234
+        --
+        -- it "should sum two vars" $ do
+        --   eval5 twoVarsEnv xPlusY `shouldReturn` IntVal 357

@@ -88,6 +88,23 @@ eval1 env (App lambda expr) = do
 runEval1 :: Identity Value -> Value
 runEval1 = runIdentity
 
+-- newtype Reader r a = Reader { runReader :: r -> a }
+-- newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
+-- eval0b :: Exp -> Reader Env Value
+type Eval5 a = ReaderT Env Identity a
+eval5 :: Exp -> Eval5 Value
+--              ReaderT Env (Identity Value)
+--              ReaderT (Env -> Identity Value)
+eval5 exp = do
+  env <- ask
+  return $ runIdentity $ eval1 env exp
+
+--runEval2 :: MaybeT Identity Value -> Maybe Value -- Identity (Maybe Value)
+--runEval5 :: Env -> ReaderT Env Identity Value -> Value
+
+runEval5 :: Env -> Eval5 a -> a
+runEval5 env eval5value  = runIdentity (runReaderT eval5value env)
+
 eval1b :: Env -> Exp -> IO Value
 eval1b _ (Lit i) = return (IntVal i)
 eval1b env (Var name) = return $ fromJust $ Map.lookup name env
