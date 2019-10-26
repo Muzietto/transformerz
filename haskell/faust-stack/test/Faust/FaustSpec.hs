@@ -20,6 +20,7 @@ module Faust.FaustSpec (main, spec) where
   import Faust.Faust
 
   import Control.Monad.Identity
+  import Control.Monad.Reader
   import Control.Monad.Trans.Maybe
   import Control.Monad.Fail
   import System.IO.Unsafe
@@ -66,6 +67,12 @@ module Faust.FaustSpec (main, spec) where
             -- FunVal name exp env
             FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
 
+      describe "eval0b (using Reader at the core)" $ do
+        it "should evaluate a Lit" $ do
+          runReader (eval0b (Lit 123)) twoVarsEnv  `shouldBe` (IntVal 123)
+
+        it "should lookup var" $ do
+          runReader (eval0b (Var "yyyy")) twoVarsEnv `shouldBe` (IntVal 234)
       describe "eval1 (using Identity at the core)" $ do
         it "should lookup a var" $ do
           eval1 twoVarsEnv watIsXxxx `shouldBe` Identity (IntVal 123)
