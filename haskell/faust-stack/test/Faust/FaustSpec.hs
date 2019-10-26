@@ -77,6 +77,13 @@ module Faust.FaustSpec (main, spec) where
         it "should lookup var" $ do
           runReader (eval0b (Var "yyyy")) twoVarsEnv `shouldBe` (IntVal 234)
 
+        it "should make a complex application" $ do
+          runReader (eval0b samplone) twoVarsEnv `shouldBe` IntVal 127
+
+        it "should make a partial application" $ do
+          runReader (eval0b (App lambdona (Lit 4))) Map.empty `shouldBe`
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
+
       describe "eval0c :: Reader Env (Exp -> Value)" $ do
         it "should evaluate a Lit" $ do
           (runReader eval0c) twoVarsEnv (Lit 123) `shouldBe` (IntVal 123)
