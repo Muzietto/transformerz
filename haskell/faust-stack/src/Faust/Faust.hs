@@ -55,19 +55,16 @@ eval0 env (App lambda expr) = let
 --eval0 env (App (Lambda argname body) expr) = eval0 (Map.insert argname (eval0 env expr) env) body
 
 -- newtype Reader r a = Reader { runReader :: r -> a }
--- newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
 eval0b :: Exp -> Reader Env Value
-eval0b (Lit i) = return (IntVal i)
+eval0b (Lit i) = return (IntVal i) -- useless: see next clause
 
+eval0b exp = ask >>= (\env -> return $ eval0 env exp)
 -- eval0b exp = do
 --   env <- ask
 --   return $ eval0 env exp
 
-eval0b exp = ask >>= (\env -> return $ eval0 env exp)
-
 eval0c :: Reader Env (Exp -> Value)
 --eval0c = ask >>= (\env -> return $ eval0 env)
-
 eval0c = do
   env <- ask
   return $ eval0 env
