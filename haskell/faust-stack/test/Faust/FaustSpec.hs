@@ -91,80 +91,55 @@ module Faust.FaustSpec (main, spec) where
 
       describe "eval1b (using IO at the core)" $ do
         it "should lookup a var" $ do
-        --  (eval1b twoVarsEnv watIsXxxx) >>= \x -> shouldBe x (IntVal 123)
-            eval1b twoVarsEnv watIsXxxx `shouldReturn` IntVal 123
+          eval1b twoVarsEnv watIsXxxx `shouldReturn` IntVal 123
 
-        -- it "should lookup another var" $ do
-        --   eval1b twoVarsEnv (Var "yyyy") `shouldBe` unsafePerformIO (IntVal 234)
-        --
-        -- it "should sum two vars" $ do
-        --   eval1b twoVarsEnv xPlusY `shouldBe` unsafePerformIO (IntVal 357)
-        --
-        -- it "should sum three vars" $ do
-        --   eval1b twoVarsEnv (Plus (Var "xxxx") xPlusY) `shouldBe` unsafePerformIO (IntVal 480)
-        --
-        -- it "should make a simple application" $ do
-        --   unsafePerformIO (eval1b Map.empty sampletto) `shouldBe` IntVal 18
-        --
-        -- it "should make a complex application" $ do
-        --   unsafePerformIO (eval1b twoVarsEnv samplone) `shouldBe` IntVal 127
-        --
-        -- it "should make a partial application" $ do
-        --   runIO (eval1b Map.empty (App lambdona (Lit 4))) `shouldBe`
-        --     FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
+        it "should lookup another var" $ do
+          eval1b twoVarsEnv (Var "yyyy") `shouldReturn` IntVal 234
 
-      describe "eval2" $ do
+        it "should sum two vars" $ do
+          eval1b twoVarsEnv xPlusY `shouldReturn` IntVal 357
+
+        it "should sum three vars" $ do
+          eval1b twoVarsEnv (Plus (Var "xxxx") xPlusY) `shouldReturn` IntVal 480
+
+        it "should make a simple application" $ do
+          eval1b Map.empty sampletto `shouldReturn` IntVal 18
+
+        it "should make a complex application" $ do
+          eval1b twoVarsEnv samplone `shouldReturn` IntVal 127
+
+        it "should make a partial application" $ do
+          eval1b Map.empty (App lambdona (Lit 4)) `shouldReturn`
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
+
+      -- newType MaybeT m a =  MaybeT { runMaybeT: MaybeT m a -> m (Maybe a) }
+      -- runEval2 :: MaybeT Identity Value -> Maybe Value
+      -- runEval2 = runIdentity . runMaybeT
+      describe "eval2, using MaybeT Identity" $ do
         it "should make a simple application" $ do
           runEval2 (eval2 Map.empty sampletto) `shouldBe` Just (IntVal 18)
 
         it "should make a complex application" $ do
           runEval2 (eval2 twoVarsEnv samplone) `shouldBe` Just (IntVal 127)
 
-       -- it "" $ do
-       --    `shouldBe`
+        it "should make a complex application" $ do
+          eval2 twoVarsEnv samplone `shouldBe`
+  --        MaybeT $ Identity $ Just $ IntVal 127
+            MaybeT (Identity (Just (IntVal 127)))
 
---   testEval2WatIsXxxx :: Test
---   testEval2WatIsXxxx =
---       TestCase $ assertEqual "eval2 should lookup a var"
---         (MaybeT (Identity (Just (IntVal 4)))) (eval2 (Map.fromList [("x",IntVal 4)]) (Var "x"))
---
---   testEval2WatIsXxxx2 :: Test
---   testEval2WatIsXxxx2 =
---       TestCase $ assertEqual "eval2 should lookup a var"
---         (Just (IntVal 4)) (runEval2 $ eval2 (Map.fromList [("x",IntVal 4)]) (Var "x"))
---
---   testEval2WatIsXPlusY :: Test
---   testEval2WatIsXPlusY =
---       TestCase $ assertEqual "eval2 should sum two vars"
---                              (Just (IntVal 357)) (runEval2 $ eval2 twoVarsEnv xPlusY)
---
---   testEval2WatIsXPlusCrash :: Test
---   testEval2WatIsXPlusCrash =
---       TestCase $ assertEqual "eval2 should fail summing stuff when one ain't IntVal"
---                              (Nothing) (runEval2 $ eval2 Map.empty (Plus (Lit 123) lambdina))
---
---   testEval2SimpleApp :: Test
---   testEval2SimpleApp =
---       TestCase $ assertEqual "eval2 should make a simple application"
---                              (Just (IntVal 18)) (runEval2 $ eval2 Map.empty sampletto)
---
---   testEval2ComplexApp :: Test
---   testEval2ComplexApp =
---       TestCase $ assertEqual "eval2 should make a complex application"
---                              (Just (IntVal 127)) (runEval2 $ eval2 twoVarsEnv samplone)
---
---   testEval2CurriedApp :: Test
---   testEval2CurriedApp =
---       TestCase $ assertEqual "eval2 should make a partial application"
---                              (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])))
---                              (runEval2 $ eval2 Map.empty (App lambdona (Lit 4)))
---
---   testEval2CurriedApp2 :: Test
---   testEval2CurriedApp2 =
---       TestCase $ assertEqual "eval2 should spit Nothing in case of errors"
---                              (Nothing)
---                              (runEval2 $ eval2 Map.empty (App lambdona (Var "inesistente")))
-{--}
+        it "should make a partial application" $
+          eval2 Map.empty (App lambdona (Lit 4)) `shouldBe`
+            MaybeT (Identity (Just (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))))
+
+        it "should fail evaluating a Var not present in the env" $
+          eval2 Map.empty (Var "pippo") `shouldBe` MaybeT (Identity (Nothing))
+
+        it "should fail summing stuff when one ain't IntVal" $
+          eval2 Map.empty (Plus (Lit 123) lambdina) `shouldBe` MaybeT (Identity (Nothing))
+
+        it "should fail applying anything that ain't a FunVal" $
+          eval2 Map.empty (App (Lit 123) (Lit 234)) `shouldBe` MaybeT (Identity (Nothing))
+
 -----------------------------------------
   --
   -- testEval3Lit123a :: Test
