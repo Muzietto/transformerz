@@ -1,6 +1,6 @@
 # faust-stack
 
-# add description of faust-stack here
+Reimplementing the work in Nilsson directory using mtl.
 
 # tests
-`stack test` from this dir
+`stack clean && stack test` from this dir
