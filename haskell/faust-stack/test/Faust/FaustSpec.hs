@@ -177,10 +177,30 @@ module Faust.FaustSpec (main, spec) where
           runReaderT (eval5 (Lit 123)) Map.empty `shouldBe` Identity (IntVal 123)
 
         it "should evaluate a Lit and return it as a Value thanks to runEval5" $ do
-          runEval5 Map.empty (eval5 (Lit 123)) `shouldBe` (IntVal 123)
+          runEval5 Map.empty (eval5 (Lit 123)) `shouldBe` IntVal 123
 
-        -- it "should lookup another var" $ do
-        --   eval5 twoVarsEnv (Var "yyyy") `shouldReturn` IntVal 234
-        --
-        -- it "should sum two vars" $ do
-        --   eval5 twoVarsEnv xPlusY `shouldReturn` IntVal 357
+        it "should lookup another var and return it as an Identity" $ do
+          runReaderT (eval5 (Var "yyyy")) twoVarsEnv `shouldBe` Identity (IntVal 234)
+
+        it "should lookup another var and return it as a Value thanks to runEval5" $ do
+          runEval5 twoVarsEnv (eval5 (Var "yyyy")) `shouldBe` IntVal 234
+
+        it "should sum two vars and return it as an Identity" $ do
+          runReaderT (eval5 xPlusY) twoVarsEnv `shouldBe` Identity (IntVal 357)
+
+        it "should sum two vars and return it as a Value thanks to runEval5" $ do
+          runEval5 twoVarsEnv (eval5 xPlusY) `shouldBe` IntVal 357
+
+        it "should make a complex application and return it as an Identity" $ do
+          runReaderT (eval5 samplone) twoVarsEnv `shouldBe` Identity (IntVal 127)
+
+        it "should make a complex application and return it as a Value thanks to runEval5" $ do
+          runEval5 twoVarsEnv (eval5 samplone) `shouldBe` IntVal 127
+
+        it "should make a partial application and return it as an Identity" $ do
+          runReaderT (eval5 (App lambdona (Lit 4))) Map.empty `shouldBe`
+            Identity (FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)]))
+
+        it "should make a partial application and return it as a Value thanks to runEval5" $ do
+          runEval5 Map.empty (eval5 (App lambdona (Lit 4))) `shouldBe`
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
