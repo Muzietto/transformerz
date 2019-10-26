@@ -50,6 +50,9 @@ module Faust.FaustSpec (main, spec) where
   spec = do
     describe "using monad transformers" $ do
       describe "eval0" $ do
+        it "should evaluate a Lit" $ do
+          eval0 Map.empty (Lit 123) `shouldBe` IntVal 123
+
         it "should lookup a var" $ do
           eval0 twoVarsEnv watIsXxxx `shouldBe` IntVal 123
 
@@ -78,8 +81,15 @@ module Faust.FaustSpec (main, spec) where
         it "should evaluate a Lit" $ do
           (runReader eval0c) twoVarsEnv (Lit 123) `shouldBe` (IntVal 123)
 
---        it "should lookup var" $ do
-  --        runReader (eval0c (Var "yyyy")) twoVarsEnv `shouldBe` (IntVal 234)
+        it "should lookup var" $ do
+          (runReader eval0c) twoVarsEnv (Var "yyyy") `shouldBe` (IntVal 234)
+
+        it "should make a complex application" $ do
+          (runReader eval0c) twoVarsEnv samplone `shouldBe` IntVal 127
+
+        it "should make a partial application" $ do
+          (runReader eval0c) Map.empty (App lambdona (Lit 4)) `shouldBe`
+            FunVal "y" (Plus (Var "x") (Var "y")) (Map.fromList [("x",IntVal 4)])
 
       describe "eval1 (using Identity at the core)" $ do
         it "should lookup a var" $ do
