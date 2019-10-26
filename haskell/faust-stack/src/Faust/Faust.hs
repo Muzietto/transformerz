@@ -63,6 +63,7 @@ eval0b exp = ask >>= (\env -> return $ eval0 env exp)
 --   env <- ask
 --   return $ eval0 env exp
 
+-- little mental masturbation; relevant impl is eval0b
 eval0c :: Reader Env (Exp -> Value)
 --eval0c = ask >>= (\env -> return $ eval0 env)
 eval0c = do
