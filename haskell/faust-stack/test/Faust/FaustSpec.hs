@@ -73,6 +73,14 @@ module Faust.FaustSpec (main, spec) where
 
         it "should lookup var" $ do
           runReader (eval0b (Var "yyyy")) twoVarsEnv `shouldBe` (IntVal 234)
+
+      describe "eval0c :: Reader Env (Exp -> Value)" $ do
+        it "should evaluate a Lit" $ do
+          (runReader eval0c) twoVarsEnv (Lit 123) `shouldBe` (IntVal 123)
+
+--        it "should lookup var" $ do
+  --        runReader (eval0c (Var "yyyy")) twoVarsEnv `shouldBe` (IntVal 234)
+
       describe "eval1 (using Identity at the core)" $ do
         it "should lookup a var" $ do
           eval1 twoVarsEnv watIsXxxx `shouldBe` Identity (IntVal 123)
@@ -146,8 +154,6 @@ module Faust.FaustSpec (main, spec) where
 
         it "should fail applying anything that ain't a FunVal" $
           eval2 Map.empty (App (Lit 123) (Lit 234)) `shouldBe` MaybeT (Identity (Nothing))
-
------------------------------------------
   --
   -- testEval3Lit123a :: Test
   -- testEval3Lit123a =

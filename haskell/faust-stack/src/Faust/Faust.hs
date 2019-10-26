@@ -64,6 +64,14 @@ eval0b (Lit i) = return (IntVal i)
 --   return $ eval0 env exp
 
 eval0b exp = ask >>= (\env -> return $ eval0 env exp)
+
+eval0c :: Reader Env (Exp -> Value)
+--eval0c = ask >>= (\env -> return $ eval0 env)
+
+eval0c = do
+  env <- ask
+  return $ eval0 env
+
 eval1 :: Env -> Exp -> Identity Value
 eval1 _ (Lit i) = return (IntVal i)
 eval1 env (Var name) = return $ fromJust $ Map.lookup name env
