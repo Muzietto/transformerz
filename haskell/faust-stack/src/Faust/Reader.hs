@@ -4,14 +4,10 @@ module Faust.Reader where
 
   import Data.Char
 
-  ppp = pure (+) <*> (+2) <*> (*10)
-
   hurr = (+2)
   durr = (*10)
 
-  ppp1 = pure (+) <*> hurr <*> durr
-
-  ppp2 = do
+  monadic = do
     a <- hurr
     b <- durr
     return (a + b)
@@ -22,7 +18,7 @@ module Faust.Reader where
   fmapped = fmap capitalize reverse
 
   apped = pure (,) <*> capitalize <*> reverse
-  bound = do
+  bound1 = do
     c <- capitalize
     r <- reverse
     return (c,r)

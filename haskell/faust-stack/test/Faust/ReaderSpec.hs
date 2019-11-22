@@ -3,6 +3,7 @@ module Faust.ReaderSpec (main, spec) where
 
   import Data.Char
   import Test.Hspec
+  import Control.Applicative
   import Faust.Reader
 
   main :: IO ()
@@ -14,6 +15,23 @@ module Faust.ReaderSpec (main, spec) where
 
   spec :: Spec
   spec = do
+    describe "partially applied functions" $ do
+      describe "are functors" $ do
+        it "that can be fmapped" $ do
+          fmap hurr durr 2 `shouldBe` 22
+      describe "are applicatives" $ do
+        it "using pure and ap" $ do
+          (pure (+) <*> hurr <*> durr) 2 `shouldBe` 24
+        it "using the fake-fmap symbol" $ do
+          ((+) <$> hurr <*> durr) 2 `shouldBe` 24
+        it "that can be lifted" $ do
+          (liftA2 (+) hurr durr) 2 `shouldBe` 24
+      describe "are monads" $ do
+        it "that can be bound on the fly" $ do
+          (hurr >>= (\a -> durr >>= (\b -> return (a + b)))) 2 `shouldBe` 24
+        it "that like sugar as well" $ do
+          monadic 2 `shouldBe` 24
+
     describe "a home-grown Reader" $ do
         it "can mimick ask" $ do
           runReader leggeLength "ciccio" `shouldBe` 6
