@@ -43,3 +43,6 @@ module Faust.ReaderSpec (main, spec) where
     describe "a home-grown Reader" $ do
         it "can mimick ask" $ do
           runReader leggeLength "ciccio" `shouldBe` 6
+        describe "is a functor" $ do
+          it "that can be fmapped" $ do
+            runReader (fmap capitalize (Reader reverse)) "ciao" `shouldBe` "OAIC"
