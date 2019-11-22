@@ -19,6 +19,9 @@ module Faust.ReaderSpec (main, spec) where
       describe "are functors" $ do
         it "that can be fmapped" $ do
           fmap hurr durr 2 `shouldBe` 22
+        it "also with more complex operations" $ do
+          composed "ciao" `shouldBe` "OAIC"
+          fmapped "ciao" `shouldBe` "OAIC"
       describe "are applicatives" $ do
         it "using pure and ap" $ do
           (pure (+) <*> hurr <*> durr) 2 `shouldBe` 24
@@ -26,11 +29,16 @@ module Faust.ReaderSpec (main, spec) where
           ((+) <$> hurr <*> durr) 2 `shouldBe` 24
         it "that can be lifted" $ do
           (liftA2 (+) hurr durr) 2 `shouldBe` 24
+        it "also with more complex operations" $ do
+          apped "ciao" `shouldBe` ("CIAO","oaic")
       describe "are monads" $ do
         it "that can be bound on the fly" $ do
           (hurr >>= (\a -> durr >>= (\b -> return (a + b)))) 2 `shouldBe` 24
         it "that like sugar as well" $ do
           monadic 2 `shouldBe` 24
+        it "also with more complex operations" $ do
+          bound1 "ciao" `shouldBe` ("CIAO","oaic")
+          bound2 "ciao" `shouldBe` ("CIAO","oaic")
 
     describe "a home-grown Reader" $ do
         it "can mimick ask" $ do
