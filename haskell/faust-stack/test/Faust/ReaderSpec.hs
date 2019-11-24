@@ -42,9 +42,13 @@ module Faust.ReaderSpec (main, spec) where
 
     describe "persons and dog" $ do
       it "live together functionally happy: 1" $ do
-        dogsName (getPersonsDog patty) `shouldBe` DogName "Wafer"
+        dogsName (getPersonsDog1 patty) `shouldBe` DogName "Wafer"
       it "live together functionally happy: 2" $ do
-        dogsName (getPersonsDogR patty) `shouldBe` DogName "Wafer"
+        dogsName (getPersonsDog2 patty) `shouldBe` DogName "Wafer"
+      it "live together using liftA2" $ do
+        dogsName (getPersonsDog3 patty) `shouldBe` DogName "Wafer"
+      it "live together using the Reader applicative" $ do
+        dogsName (runReader getPersonsDogR patty) `shouldBe` DogName "Wafer"
 
     describe "a home-grown Reader" $ do
       it "can mimick ask" $ do
