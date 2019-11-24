@@ -1,4 +1,4 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE InstanceSigs, AllowAmbiguousTypes #-}
 
 module Faust.Reader where
 
@@ -58,9 +58,28 @@ module Faust.Reader where
            (Address "Bartolini")
 
   -- without Reader
-  getPersonsDog :: Person -> Dog
-  getPersonsDog p = Dog (dogName p) (address p)
+  getPersonsDog1 :: Person -> Dog
+  getPersonsDog1 p = Dog (dogName p) (address p)
 
   -- still without Reader, but remembering (->r)
-  getPersonsDogR :: Person -> Dog
-  getPersonsDogR = pure Dog <*> dogName <*> address
+  getPersonsDog2 :: Person -> Dog
+  getPersonsDog2 = pure Dog <*> dogName <*> address
+
+  -- still without Reader, but using some operator on scalars
+  myLiftA2 :: Applicative fr =>
+              (a -> b -> c) ->
+              fr a -> fr b -> fr c
+  myLiftA2 fabc fra frb =
+    pure fabc <*> fra <*> frb
+
+  getPersonsDog3 :: Person -> Dog
+  getPersonsDog3 = myLiftA2 Dog dogName address
+
+  -- eventually with Reader
+  getPersonsDogR :: Reader Person Dog
+  getPersonsDogR = Reader (\p -> Dog (dogName p)
+                                   (address p))
+  asks :: (r -> a) -> Reader r a
+  asks = Reader
+
+
