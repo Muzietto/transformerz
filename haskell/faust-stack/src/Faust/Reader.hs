@@ -28,3 +28,9 @@ module Faust.Reader where
   instance Functor (Reader r) where
     fmap :: (a -> b) -> Reader r a -> Reader r b
     fmap fab ra = Reader (\a -> fab (runReader ra a))
+  instance Applicative (Reader r) where
+    pure :: a -> Reader r a
+    pure a = Reader (\_ -> a)
+    (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
+    Reader rfab <*> Reader ra = Reader (\r -> rfab r (ra r))
+
