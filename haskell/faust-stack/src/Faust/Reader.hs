@@ -33,6 +33,12 @@ module Faust.Reader where
     pure a = Reader (\_ -> a)
     (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
     Reader rfab <*> Reader ra = Reader (\r -> rfab r (ra r))
+  instance Monad (Reader r) where
+    return :: a -> Reader r a
+    return = pure
+    (>>=) :: Reader r a -> (a -> Reader r b) -> Reader r b
+    Reader fra >>= faRrb =
+      Reader (\r -> runReader (faRrb (fra r)) r)
 
   newtype HumanName = HumanName String deriving (Eq, Show)
   newtype DogName = DogName String deriving (Eq, Show)
@@ -57,29 +63,44 @@ module Faust.Reader where
            (DogName "Wafer")
            (Address "Bartolini")
 
-  -- without Reader
+  -- using plain record syntax
   getPersonsDog1 :: Person -> Dog
   getPersonsDog1 p = Dog (dogName p) (address p)
 
-  -- still without Reader, but remembering (->r)
+  -- using (->r) applicative and monad
   getPersonsDog2 :: Person -> Dog
   getPersonsDog2 = pure Dog <*> dogName <*> address
+  getPersonsDog3 :: Person -> Dog
+  getPersonsDog3 = do
+    n <- dogName
+    a <- address
+    return $ Dog n a
 
-  -- still without Reader, but using some operator on scalars
+  -- using LiftA2
   myLiftA2 :: Applicative fr =>
               (a -> b -> c) ->
               fr a -> fr b -> fr c
   myLiftA2 fabc fra frb =
     pure fabc <*> fra <*> frb
 
-  getPersonsDog3 :: Person -> Dog
-  getPersonsDog3 = myLiftA2 Dog dogName address
+  getPersonsDogLift :: Person -> Dog
+  getPersonsDogLift = myLiftA2 Dog dogName address
 
-  -- eventually with Reader
-  getPersonsDogR :: Reader Person Dog
-  getPersonsDogR = Reader (\p -> Dog (dogName p)
-                                   (address p))
+  -- eventually with Reader as applicative
+  getPersonsDogA :: Reader Person Dog
+  -- getPersonsDogA = pure (Reader Dog) <*> (Reader dogName) <*> (Reader address)
+  getPersonsDogA = undefined
+
+  -- eventually with Reader as monad
+  getPersonsDogM :: Reader Person Dog
+  getPersonsDogM = do
+    p <- ask
+    return $ Dog (dogName p) (address p)
+
   asks :: (r -> a) -> Reader r a
   asks = Reader
 
+  ask :: Reader r r
+  ask = Reader (\r -> r)
 
+  -- implement http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Reader.html#g:4

@@ -45,10 +45,14 @@ module Faust.ReaderSpec (main, spec) where
         dogsName (getPersonsDog1 patty) `shouldBe` DogName "Wafer"
       it "live together functionally happy: 2" $ do
         dogsName (getPersonsDog2 patty) `shouldBe` DogName "Wafer"
-      it "live together using liftA2" $ do
+      it "live together functionally happy: 3" $ do
         dogsName (getPersonsDog3 patty) `shouldBe` DogName "Wafer"
-      it "live together using the Reader applicative" $ do
-        dogsName (runReader getPersonsDogR patty) `shouldBe` DogName "Wafer"
+      it "live together using LiftA2" $ do
+        dogsName (getPersonsDogLift patty) `shouldBe` DogName "Wafer"
+      -- it "live together using the Reader applicative" $ do
+        -- dogsName (runReader getPersonsDogA patty) `shouldBe` DogName "Wafer"
+      it "live together using the Reader monad" $ do
+        dogsName (runReader getPersonsDogM patty) `shouldBe` DogName "Wafer"
 
     describe "a home-grown Reader" $ do
       it "can mimick ask" $ do
@@ -59,3 +63,20 @@ module Faust.ReaderSpec (main, spec) where
       describe "is an applicative" $ do
         it "that can be apped" $ do
           runReader (pure (,) <*> (Reader capitalize) <*> (Reader reverse))  "ciao" `shouldBe` ("CIAO", "oaic")
+      describe "is a monad" $ do
+        it "that can be bound with >>=" $ do
+          runReader ((Reader capitalize)
+            >>= (\c -> (Reader reverse)
+              >>= (\r -> return (c,r)))) "ciao"
+                `shouldBe` ("CIAO", "oaic")
+        it "that can be bound with sugar" $ do
+          runReader (do
+            c <- Reader capitalize
+            r <- Reader reverse
+            return (c,r)) "ciao"
+                `shouldBe` ("CIAO", "oaic")
+        it "that can be bound using ask" $ do
+          runReader (do
+            s <- ask
+            return (capitalize s, reverse s)) "ciao"
+                `shouldBe` ("CIAO", "oaic")
