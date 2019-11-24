@@ -34,3 +34,33 @@ module Faust.Reader where
     (<*>) :: Reader r (a -> b) -> Reader r a -> Reader r b
     Reader rfab <*> Reader ra = Reader (\r -> rfab r (ra r))
 
+  newtype HumanName = HumanName String deriving (Eq, Show)
+  newtype DogName = DogName String deriving (Eq, Show)
+  newtype Address = Address String deriving (Eq, Show)
+
+  data Person =
+    Person {
+      humanName :: HumanName
+    , dogName :: DogName
+    , address :: Address
+    } deriving (Eq, Show)
+
+  data Dog =
+    Dog {
+      dogsName :: DogName
+    , dogsAddress :: Address
+    } deriving (Eq, Show)
+
+  patty :: Person
+  patty =
+    Person (HumanName "Pattypatty")
+           (DogName "Wafer")
+           (Address "Bartolini")
+
+  -- without Reader
+  getPersonsDog :: Person -> Dog
+  getPersonsDog p = Dog (dogName p) (address p)
+
+  -- with Reader
+  getPersonsDogR :: Reader Person Dog
+  getPersonsDogR = Reader (\p -> Dog (dogName p) (address p))

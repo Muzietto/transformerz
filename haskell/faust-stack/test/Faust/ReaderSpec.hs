@@ -40,12 +40,18 @@ module Faust.ReaderSpec (main, spec) where
           bound1 "ciao" `shouldBe` ("CIAO","oaic")
           bound2 "ciao" `shouldBe` ("CIAO","oaic")
 
+    describe "persons and dog" $ do
+      it "live together functionally happy" $ do
+        dogsName (getPersonsDog patty) `shouldBe` DogName "Wafer"
+      it "live together monadically happy" $ do
+        dogsName (runReader getPersonsDogR patty) `shouldBe` DogName "Wafer"
+
     describe "a home-grown Reader" $ do
-        it "can mimick ask" $ do
-          runReader leggeLength "ciccio" `shouldBe` 6
-        describe "is a functor" $ do
-          it "that can be fmapped" $ do
-            runReader (fmap capitalize (Reader reverse)) "ciao" `shouldBe` "OAIC"
-        describe "is an applicative" $ do
-          it "that can be apped" $ do
-            runReader (pure (,) <*> (Reader capitalize) <*> (Reader reverse))  "ciao" `shouldBe` ("CIAO", "oaic")
+      it "can mimick ask" $ do
+        runReader leggeLength "ciccio" `shouldBe` 6
+      describe "is a functor" $ do
+        it "that can be fmapped" $ do
+          runReader (fmap capitalize (Reader reverse)) "ciao" `shouldBe` "OAIC"
+      describe "is an applicative" $ do
+        it "that can be apped" $ do
+          runReader (pure (,) <*> (Reader capitalize) <*> (Reader reverse))  "ciao" `shouldBe` ("CIAO", "oaic")
