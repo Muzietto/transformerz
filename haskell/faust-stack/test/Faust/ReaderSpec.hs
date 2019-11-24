@@ -41,10 +41,10 @@ module Faust.ReaderSpec (main, spec) where
           bound2 "ciao" `shouldBe` ("CIAO","oaic")
 
     describe "persons and dog" $ do
-      it "live together functionally happy" $ do
+      it "live together functionally happy: 1" $ do
         dogsName (getPersonsDog patty) `shouldBe` DogName "Wafer"
-      it "live together monadically happy" $ do
-        dogsName (runReader getPersonsDogR patty) `shouldBe` DogName "Wafer"
+      it "live together functionally happy: 2" $ do
+        dogsName (getPersonsDogR patty) `shouldBe` DogName "Wafer"
 
     describe "a home-grown Reader" $ do
       it "can mimick ask" $ do

@@ -61,6 +61,6 @@ module Faust.Reader where
   getPersonsDog :: Person -> Dog
   getPersonsDog p = Dog (dogName p) (address p)
 
-  -- with Reader
-  getPersonsDogR :: Reader Person Dog
-  getPersonsDogR = Reader (\p -> Dog (dogName p) (address p))
+  -- still without Reader, but remembering (->r)
+  getPersonsDogR :: Person -> Dog
+  getPersonsDogR = pure Dog <*> dogName <*> address
