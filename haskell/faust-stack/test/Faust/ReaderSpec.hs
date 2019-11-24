@@ -46,3 +46,6 @@ module Faust.ReaderSpec (main, spec) where
         describe "is a functor" $ do
           it "that can be fmapped" $ do
             runReader (fmap capitalize (Reader reverse)) "ciao" `shouldBe` "OAIC"
+        describe "is an applicative" $ do
+          it "that can be apped" $ do
+            runReader (pure (,) <*> (Reader capitalize) <*> (Reader reverse))  "ciao" `shouldBe` ("CIAO", "oaic")
