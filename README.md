@@ -16,4 +16,6 @@ This project is presented at [Understanding monad transformers: mastery is in th
 
 [1] http://www.cs.virginia.edu/~wh5a/personal/Transformers.pdf
 
+[1] https://github.com/Muzietto/transformerz/blob/master/doc/Transformers.pdf (local copy)
+
 [2] http://www.cs.nott.ac.uk/~nhn/MGS2006/LectureNotes/lecture03-9up.pdf
