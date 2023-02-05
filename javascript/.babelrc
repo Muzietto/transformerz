@@ -1,0 +1,30 @@
+{
+    "presets": [
+        "es2015",
+        "stage-0"
+    ],
+    "plugins": [
+        "transform-class-properties"
+    ],
+    "env": {
+        "browser": {
+            "plugins": [
+                "transform-es2015-modules-amd"
+            ]
+        },
+        "test": {
+            "plugins": [
+                [
+                    "module-resolver", {
+                      "alias": {
+                        "@src": "./src"
+                      },
+                      "root": [
+                        "./js"
+                        ]
+                      }
+                ]
+            ]
+        }
+    }
+}
