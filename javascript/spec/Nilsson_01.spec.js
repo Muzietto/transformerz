@@ -5,9 +5,12 @@ import {
 import {
   Var,
   Lit,
+  Plus,
+  Lambda,
 } from '@src/expressions';
 import {
   IntVal,
+  FunVal,
 } from '@src/values';
 import {
   eval0,
@@ -21,9 +24,9 @@ describe('in the magical world of Nilsson_01', () => {
     xxxx: IntVal(123),
     yyyy: IntVal(234),
   });
-  //const xPlusY = Plus(Var('xxxx'))(Var('yyyy'));
+  const xPlusY = Plus(Var('xxxx'))(Var('yyyy'));
   // \x -> x
-  //const lambdina = Lambda('x')(Var('x')); // IDENTITY
+  const identity = Lambda('x')(Var('x')); // IDENTITY
   // \x -> \y -> x + y
   //const lambdona = Lambda('x')(Lambda('y')(Plus(Var('x'))(Var('y'))));
   // 12 + (\x -> x)(4 + 2)
@@ -33,16 +36,19 @@ describe('in the magical world of Nilsson_01', () => {
   describe('lives eval0 that', () => {
     it('should evaluate a literal', () => {
       const intVal123 = eval0(two_vars_env)(Lit(123))
-      expect(intVal123.isIntVal).to.be.true;
-      expect(intVal123.i).to.eql(123);
+      expect(intVal123).to.eql(IntVal(123));
     });
     it('should lookup a var', () => {
       const lookedUpXxxx = eval0(two_vars_env)(watIsXxxx);
-      expect(lookedUpXxxx.isIntVal).to.be.true;
-      expect(lookedUpXxxx.i).to.eql(123);
+      expect(lookedUpXxxx).to.eql(IntVal(123));
     });
-    xit('should sum two vars', () => {
-      expect(eval0(two_vars_env)(xPlusY)).to.eql(IntVal(357));
+    it('should sum two vars', () => {
+      const eval0XPlusY = eval0(two_vars_env)(xPlusY);
+      expect(eval0XPlusY).to.eql(IntVal(357));
+    });
+    it('should eval a function given an environment', () => {
+      const evaluedIdentity = eval0(two_vars_env)(identity);
+      expect(evaluedIdentity).to.be.eql(FunVal('x')(Var('x'))(two_vars_env));
     });
     xit('should make a VERY simple application', () => {
       expect(eval0(two_vars_env)(App(watIsXxxx)(lambdina))).to.eql(IntVal(123));

@@ -10,6 +10,7 @@ describe('in the magical world of functions', () => {
     });
     it('inserts keys and values', () => {
       expect(Env().insert('a')(false).lookup('a').get()).to.eql(false);
+      expect(Env().insert('a')(false)).to.eql(Env({ 'a': false }));
     });
   });
 });

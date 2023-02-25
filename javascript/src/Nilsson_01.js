@@ -12,6 +12,7 @@
 import { Maybe } from '@src/lib/maybe';
 // const { Pair, Triple } = Tuple;
 
+/*
 import {
   Env,
 } from '@src/functions';
@@ -19,8 +20,11 @@ import {
   Var,
   Lit,
 } from '@src/expressions';
+*/
+
 import {
   IntVal,
+  FunVal,
 } from '@src/values';
 
 //  class (Monad m, Monad (t m)) => MonadTransformer t m where
@@ -30,13 +34,13 @@ export function eval0(env) {
 	return exp => {
 		if (exp.isLit) return IntVal(exp.i);
 		if (exp.isVar) return env.lookup(exp.name).get();
-/*
 		if (exp.isPlus) {
 			const i1 = eval0(env)(exp.e1).i;
 			const i2 = eval0(env)(exp.e2).i;
 			return IntVal(i1 + i2);
 		}
-		if (exp.isLambda) return FunVal(exp.argname, exp.body, env);
+		if (exp.isLambda) return FunVal(exp.argname)(exp.body)(env);
+    /*
 		if (exp.isApp) {
 			const {
 				lambda,

@@ -25,7 +25,37 @@ function Var(name = '') {
   return result;
 }
 
+function Plus(e1) {
+  if (!e1.isExp) throw `Plus - e1 is not an Exp: ${JSON.stringify(e1)}`;
+  return e2 => {
+    if (!e2.isExp) throw `Plus - e2 is not an Exp: ${JSON.stringify(e2)}`;
+    let result = {
+      isPlus: true,
+      e1,
+      e2,
+    };
+    result = Object.setPrototypeOf(result, Exp());
+    return result;
+  }
+}
+
+function Lambda(argname) {
+  if (typeof argname !== 'string') throw `Lambda - argname is not a string: ${JSON.stringify(argname)}`;
+  return body => {
+    if (!body.isExp) throw `Lambda - body is not an Exp: ${JSON.stringify(body)}`;
+    let result = {
+      isLambda: true,
+      argname,
+      body,
+    };
+    result = Object.setPrototypeOf(result, Exp());
+    return result;
+  }
+}
+
 export {
-  Lit,
   Var,
+  Lit,
+  Plus,
+  Lambda,
 };
