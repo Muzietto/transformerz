@@ -1,9 +1,10 @@
+import { Maybe } from '@src/lib/maybe';
 
 function Env(dict = {}) {
   const parent = {
     isEnv: true,
     lookup: function(key) {
-      const result = this[key];
+      const result = Maybe.fromNullable(this[key]);
       return result;
     },
     insert: function(key) {

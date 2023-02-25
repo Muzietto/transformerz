@@ -8,29 +8,29 @@
 	The MIT License - Copyright (c) 2015-2023 Transformerz Project
 */
 
-import { Tuple } from 'lib/tuples';
-import { Maybe } from 'lib/maybe';
-const { Pair, Triple } = Tuple;
+// import { Tuple } from 'lib/tuples';
+import { Maybe } from '@src/lib/maybe';
+// const { Pair, Triple } = Tuple;
 
 import {
-	Name,
-	Exp,
-	Value,
-	Env,
-} from 'index';
-const {
-	IntVal,
-	FunVal,
-} = Value;
+  Env,
+} from '@src/functions';
+import {
+  Var,
+  Lit,
+} from '@src/expressions';
+import {
+  IntVal,
+} from '@src/values';
 
 //  class (Monad m, Monad (t m)) => MonadTransformer t m where
 //    lift :: m a -> t m a
 
 export function eval0(env) {
 	return exp => {
-		console.log('qweqaaaaa aaaaaaaaaaweqwe',JSON.stringify(exp,null,2));
 		if (exp.isLit) return IntVal(exp.i);
 		if (exp.isVar) return env.lookup(exp.name).get();
+/*
 		if (exp.isPlus) {
 			const i1 = eval0(env)(exp.e1).i;
 			const i2 = eval0(env)(exp.e2).i;
@@ -38,7 +38,6 @@ export function eval0(env) {
 		}
 		if (exp.isLambda) return FunVal(exp.argname, exp.body, env);
 		if (exp.isApp) {
-			console.log('ssssssssssssssssssss',JSON.stringify(exp,null,2));
 			const {
 				lambda,
 				expr,
@@ -52,6 +51,7 @@ export function eval0(env) {
 			const newEnv = env.insert(argname, val);
 			return eval0(newEnv)(body);
 		}
+*/
 		throw new Error('Not an Exp');
 	}
 }

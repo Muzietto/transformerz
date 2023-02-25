@@ -8,7 +8,7 @@
     "build": "webpack --env NPC_ENV=local --config=webpack.config.js",
     "test_old": "BABEL_ENV=test mocha --compilers js:babel-core/register --reporter spec --require babel-polyfill spec/**/*.js",
     "watch": "nodemon --exec \"npm test\"",
-    "test": "mocha"
+    "test": "mocha --watch"
   },
   "author": "Marco Faustinelli (marco_faustinelli@yahoo.com)",
   "license": "GPL-3",
