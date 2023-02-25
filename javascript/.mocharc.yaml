@@ -1,0 +1,14 @@
+require: '@babel/register'
+full-trace: true
+global:
+  - 'jQuery'
+  - '$'
+ignore:
+  - './spec/functions.spec'
+  - './spec/Nilsson_01.spec'
+reporter: 'spec'
+spec:
+  - 'spec/**/*.spec.js' # the positional arguments!
+timeout: '2000' # same as "timeout: '2s'"
+ui: 'bdd'
+watch: false

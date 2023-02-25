@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import cippo from 'index';
+import cippo from '@src/index';
 
 describe('in the magical world of index', () => {
   it('lives the cippo method', () => {
