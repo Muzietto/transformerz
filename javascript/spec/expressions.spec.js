@@ -4,20 +4,22 @@ import {
   Var,
   Plus,
   Lambda,
+  App,
 } from '@src/expressions';
 
 describe('in the magical world of expressions', () => {
   describe('lives the Lit operator that', () => {
     it('expresses literal integers', () => {
-      expect(Lit(12)).to.eql(Lit(12));
+      expect(Lit(12).J()).to.equal(Lit(12).J());
       expect(Lit(12).i).to.eql(12);
       expect(Lit(12).isLit).to.be.true;
       expect(Lit(12).isExp).to.be.true;
+      expect(Lit(12).J()).to.equal('{"isLit":true,"i":12}');
     });
   });
   describe('lives the Var operator that', () => {
     it('expresses name of variables', () => {
-      expect(Var('xxxx')).to.eql(Var('xxxx'));
+      expect(Var('xxxx').J()).to.equal(Var('xxxx').J());
       expect(Var('xxxx').name).to.eql('xxxx');
       expect(Var('xxxx').isVar).to.be.true;
       expect(Var('xxxx').isExp).to.be.true;
@@ -40,6 +42,16 @@ describe('in the magical world of expressions', () => {
       expect(identity.body.name).to.eql('x');
       expect(identity.isLambda).to.be.true;
       expect(identity.isExp).to.be.true;
+    });
+  });
+  describe('lives the App operator that', () => {
+    const identity = Lambda('x')(Var('x'));
+    it('expresses the application of a function upon an expression', () => {
+      const appliedIdentity = App(identity)(Var('xxxx'));
+      expect(appliedIdentity.lambda.argname).to.eql('x');
+      expect(appliedIdentity.expr.name).to.eql('xxxx');
+      expect(appliedIdentity.isApp).to.be.true;
+      expect(appliedIdentity.isExp).to.be.true;
     });
   });
 });

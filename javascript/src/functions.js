@@ -14,7 +14,8 @@ function Env(dict = {}) {
           [key]: value,
         });
       }
-    }
+    },
+    J: function() { return JSON.stringify(this); },
   };
   let result = {
     ...dict,

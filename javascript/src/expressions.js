@@ -2,6 +2,7 @@
 function Exp() {
   return {
     isExp: true,
+    J: function() { return JSON.stringify(this); },
   };
 }
 
@@ -53,9 +54,24 @@ function Lambda(argname) {
   }
 }
 
+function App(lambda) {
+  if (!lambda.isLambda) throw `App - lambda is not a Lambda: ${JSON.stringify(lambda)}`;
+  return expr => {
+    if (!expr.isExp) throw `App - expr is not an Exp: ${JSON.stringify(expr)}`;
+    let result = {
+      isApp: true,
+      lambda,
+      expr,
+    };
+    result = Object.setPrototypeOf(result, Exp());
+    return result;
+  }
+}
+
 export {
   Var,
   Lit,
   Plus,
   Lambda,
+  App,
 };

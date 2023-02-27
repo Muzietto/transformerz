@@ -40,27 +40,33 @@ export function eval0(env) {
 			return IntVal(i1 + i2);
 		}
 		if (exp.isLambda) return FunVal(exp.argname)(exp.body)(env);
-    /*
-		if (exp.isApp) {
-			const {
-				lambda,
-				expr,
-			} = exp;
-			const {
-				argname: name,
-				body: exp,
-				env1: env,
-			} = eval0(env)(lambda);
-			const val = eval0(env)(expr);
-			const newEnv = env.insert(argname, val);
-			return eval0(newEnv)(body);
-		}
-*/
+    if (exp.isApp) {
+      const {
+        lambda,
+        expr,
+      } = exp;
+      const {
+        name: argname1,
+        exp: body1,
+        env: env1,
+      } = eval0(env)(lambda);
+      const val2 = eval0(env)(expr);
+			const newEnv = env.insert(argname1)(val2);
+      const result = eval0(newEnv)(body1);
+			return result;
+    }
 		throw new Error('Not an Exp');
 	}
 }
-
 /*
+const user = {
+  id: 42,
+  isVerified: true,
+};
+
+const { id, isVerified } = user;
+
+
   eval0 :: Env -> Exp -> Value
   eval0 env (Lit i) = IntVal i
   eval0 env (Var name) = fromJust $ Map.lookup name env

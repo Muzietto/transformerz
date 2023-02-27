@@ -6,6 +6,7 @@ import {
   Lit,
   Plus,
   Lambda,
+  App,
 } from '@src/expressions';
 import {
   IntVal,
@@ -46,6 +47,12 @@ assert(identity.body.name === 'x', 'Lambda not working2');
 assert(identity.isLambda, 'Lambda not working3');
 assert(identity.isExp, 'Lambda not working3');
 
+const appIdentity = App(identity)(Lit(2));
+assert(appIdentity.lambda.argname === 'x', 'App not working1');
+assert(appIdentity.expr.i === 2, 'App not working2');
+assert(appIdentity.isApp, 'App not working3');
+assert(appIdentity.isExp, 'App not working3');
+
 ////////////////////////////////////////////////
 const intVal12 = IntVal(12);
 assert(intVal12.i === 12, 'IntVal not working1');
@@ -73,6 +80,11 @@ assert(eval0Lit.i === 234, 'eval0 not working22');
 const eval0WPlus123 = eval0(one_var_env)(Plus(Var('w'))(Lit(123)));
 assert(eval0WPlus123.isIntVal, 'eval0 not working31');
 assert(eval0WPlus123.i === 246, 'eval0 not working32');
+
+const evalIdentity = eval0(one_var_env)(App(identity)(Var('w')));
+assert(evalIdentity.isIntVal, 'eval0 not working 41');
+assert(evalIdentity.i === 123, 'eval0 not working 42');
+
 
 
 if (typeof window !== 'undefined') {

@@ -2,6 +2,7 @@
 function Value() {
   return {
     isValue: true,
+    J: function() { return JSON.stringify(this); },
   };
 }
 
