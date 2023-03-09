@@ -2,11 +2,54 @@
  <html>
    <head>
      <meta charset="utf-8" />
-     <title>transformerz-js</title>
+     <title>iframe-test</title>
+     <link rel="icon" href="favicon.ico">
+     <style>
+       .flex-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            align-content: stretch;
+            align-items: flex-start;
+        }
+
+        .flex-item:nth-child(1) {
+            order: 0;
+            flex: 0 1 auto;
+            align-self: auto;
+            padding: 10px;
+        }
+
+        .flex-item:nth-child(2) {
+            order: 0;
+            flex: 0 1 auto;
+            align-self: auto;
+            padding: 10px;
+        }
+
+        .flex-item:nth-child(3) {
+            order: 0;
+            flex: 0 1 auto;
+            align-self: auto;
+            padding: 10px;
+        }
+     </style>
    </head>
    <body>
-     <div id="root"></div>
-     <!-- next tag must be present if HtmlWebpackPlugin.inject = false -->
-     <!--script src="bundle.js"></script-->
+     <div class="flex-container">
+       <div class="flex-item">
+         <h1>PCEW in IFRAME</h1>
+         <iframe style="border:2px solid red;" src="https://clienti-easywelfare.edenred.it/web/login" height="500" width="600" title="Iframe Example"></iframe>
+       </div>
+       <div class="flex-item">
+         <h1>BENEFICIARI in IFRAME</h1>
+         <iframe style="border:2px solid red;" src="https://beneficiari.edenred.it/login?p_p_id=58&p_p_lifecycle=0&_58_redirect=%2Fgroup%2Fportale-beneficiari" height="500" width="600" title="Iframe Example"></iframe>
+       </div>
+       <div class="flex-item">
+         <h1>VECCHIO PORTALE in IFRAME</h1>
+         <iframe style="border:2px solid red;" src="https://clienti.ticketxte.com/web/clienti" height="500" width="600" title="Iframe Example"></iframe>
+       </div>
+     </div>
    </body>
  </html>
